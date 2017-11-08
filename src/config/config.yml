@@ -1,0 +1,18 @@
+---
+case: 0
+
+log: 
+  state: 0 
+  file: fenite.log
+      
+protocol:
+  type: 0
+  request:
+    timeout: 0
+    limit: 1
+  webhook:
+    port: 8080
+      
+trigger: "/"
+    
+token: 11111

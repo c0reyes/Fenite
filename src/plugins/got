@@ -1,0 +1,54 @@
+sub {
+    use POSIX qw(strftime);
+    use LWP::Simple;
+    use Time::Local;
+
+    my ($self, $msg) = @_;
+    my $r;
+
+    my $html = get("https://www.nextgot.com/");
+
+    my @h = split(/\n/, $html);
+
+    for(my $i = 0; $i < @h; $i++) {
+        if($h[$i] =~ /Next episode/) {
+            $h[$i] =~ s/<h2>Next episode: <span class=\"color\">(.*)<\/span><br><span class=\"big\">(.*)<\/span><\/h2>/Episodio: $1\nTitulo: $2/g;
+            $h[$i] =~ s/&nbsp;&ndash;&nbsp;/ - /;
+            $r = $h[$i] . "\n";
+        }
+
+        if($h[$i] =~ /countDown/) {
+            $h[$i] =~ s/countDown\(new Date\((.*)\)\);}\);/$1/g;
+            my @s = split(/,/, $h[$i]); 
+
+            my $time = timegm($s[5], $s[4], $s[3], $s[2], $s[1], $s[0]);
+            my $cur = time();
+
+            $r .= "\n";
+
+            if( $time > $cur ) {
+                $r .= sprintf("%02d D : %02d H : %02d M : %02d S\n",
+                     ($time-$cur)/(60*60*24),
+                    (($time-$cur)%(60*60*24))/(60*60),
+                    ($time-$cur)/60 % 60,
+                    ($time-$cur)%60
+                );
+            }else{ $r = "Falta mucho mmg"; }
+        }
+    }
+
+    if($r) {
+    	$self->sendDocument([
+                chat_id => $msg->{chat}{id},
+                document => "CgADAQADHQADkvn5RO4pg0QvfvosAg", 
+                caption => $r
+        ]);
+    }else{
+        $self->sendMessage([
+                chat_id => $msg->{chat}{id},
+                text => "Quieres spoilers???"
+        ]);
+    }
+
+}
+

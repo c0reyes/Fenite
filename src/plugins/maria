@@ -1,0 +1,64 @@
+sub {
+    use POSIX qw(strftime);
+    use XML::RSSLite;
+    use LWP::Simple;
+    use Encode qw(encode);
+
+    my ($self, $msg) = @_;
+
+    my $url1 = "http://www.nhc.noaa.gov/storm_graphics/AT15/refresh/AL152017_5day_cone_no_line_and_wind+png/233849_5day_cone_no_line_and_wind.png";
+    my $url2 = "http://www.ssd.noaa.gov/PS/TROP/floaters/15L/imagery/avn0-lalo.gif";
+    my $trg = "Text\\[1\\]=";
+
+    my $file1 = (split /\//, $url1)[-1];
+    my $file2 = (split /\//, $url2)[-1];
+
+    system("wget -q $url1");
+
+    if( -f $file1 ) {
+        $self->sendPhoto([
+            chat_id => $msg->{chat}{id},
+            photo => [$file1]
+        ]);
+
+        unlink($file1);
+
+        system("wget -q $url2");
+
+        if( -f $file2 ) {
+            $self->sendPhoto([
+                chat_id => $msg->{chat}{id},
+                photo => [$file2]
+            ]);
+
+            unlink($file2);
+        }
+
+        my $html = get("http://www.nhc.noaa.gov/");
+        my @h = split(/\n/, $html);
+        my $r = "";
+
+        for(my $i = 0; $i < @h; $i++) {
+            if($h[$i] =~ /$trg/) {
+                $r = (split(/\=/,$h[$i]))[1];
+                $r =~ s/\[|\]|\(click for details\)|\'//g;
+                $r =~ s/<b>(.*)<\/b>/\*$1\*/g;
+                $r =~ s/<\/b>\,<b>/\*\n\*/g;
+                $r =~ s/<br>/\n/g;
+            }
+        }
+
+        if($r) {
+            $self->sendMessage([
+                chat_id => $msg->{chat}{id},
+                parse_mode => 'Markdown',
+                text => "$r"
+            ]);
+        }
+    }else{
+        $self->sendMessage([
+                chat_id => $msg->{chat}{id},
+                text => "Error al bajar el archivo"
+        ]);
+    }
+}

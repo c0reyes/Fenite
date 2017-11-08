@@ -1,0 +1,56 @@
+sub {
+    use POSIX qw(strftime);
+    use XML::RSSLite;
+    use LWP::Simple;
+
+    my ($self, $msg) = @_;
+
+    my $url = "https://earthquake.usgs.gov/fdsnws/event/1/query?format=text&latitude=18.706815&longitude=-70.602645&maxradiuskm=180";
+
+    # starttime
+    my $s = getDate2();
+    $url .= "&starttime=" . $s;
+
+    my $r;
+    my $result = get($url);
+    my @rr = split("\n", $result);
+
+    for(my $i = 0; $i < @rr; $i++) {
+        next if($rr[$i] =~ /^#/);
+        my @tmp = split(/\|/, $rr[$i]);
+        $r = "USGS\n\n";
+        $r .= "Fecha: $tmp[1]\n";
+        $r .= "Mangitude: $tmp[10]\n";
+        $r .= "Event: $tmp[12]\n\n";
+        $r .= _link2($tmp[2], $tmp[3]) . "\n";
+    }
+
+    if($r) {
+    	$self->sendMessage([
+                chat_id => $msg->{chat}{id},
+                text => $r,
+                parse_mode => 'Markdown',
+                disable_web_page_preview => "true"
+        ]);
+    }else{
+        $self->sendMessage([
+                chat_id => $msg->{chat}{id},
+                text => "Tiene mieoo???"
+        ]);
+    }
+
+    sub _link2 {
+        my $lat = shift;
+        my $lng = shift;
+
+        my $a = "$lat,$lng";
+        my $g = "http://maps.google.com/?q=" . $a . "&ll=" . $a . "&z=8";
+        return "*Links:*\n[Google](" . $g . ")";
+    }
+
+    sub getDate2 {
+        my $date = strftime "%Y-%m-%d", localtime(time - 24 * 60 * 60);
+        return $date;
+    } 
+}
+

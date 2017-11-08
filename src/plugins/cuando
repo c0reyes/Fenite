@@ -1,0 +1,61 @@
+sub {
+    use Fenite qw(query update insert);
+    use Data::Dumper;
+
+    my ($self, $msg) = @_;
+
+    my $u = $msg->{from}{username};
+
+    # Operadores
+    my @o = ();
+    @o = query("select codename from fenite_op");
+    my $op = join("|", @o);
+    $op =~ s/\s\n|\n//g;
+
+    # Agregar frase
+    if($msg->{text} =~ /^add|^del/i && $u =~ /$op/i) {
+        my $c = 0;
+        $c = 1 if($msg->{text} =~ /^add/);
+
+        if($msg->{reply_to_message}) {
+            my @param;
+
+            $msg->{text} =~ s/^add\s(.*)|^del\s(.*)/$1/;
+
+            push(@param, $msg->{text});
+
+            if($msg->{reply_to_message}{document}) {
+                push(@param, $msg->{reply_to_message}{document}{file_id});
+                push(@param, "document");
+            }elsif($msg->{reply_to_message}{photo}){
+                push(@param, $msg->{reply_to_message}{photo}[2]{file_id});
+                push(@param, "photo");
+            }elsif($msg->{reply_to_message}{voice}){
+                push(@param, $msg->{reply_to_message}{voice}{file_id}); 
+                push(@param, "voice");
+            }elsif($msg->{reply_to_message}{sticker}){
+                push(@param, $msg->{reply_to_message}{sticker}{file_id});
+                push(@param, "sticker");
+            }else{
+                push(@param, $msg->{reply_to_message}{text});
+                push(@param, "message");    
+            }
+
+            if($c) {
+                insert("insert into fenite_rep (key,frase, type) values (?,?,?)", @param);
+
+                $self->sendMessage([
+                    chat_id => $msg->{chat}{id},
+                    text => "Agregado\n"
+                ]);
+            }else{
+                insert("delete from fenite_rep where key = ? and frase = ? and type = ?", @param);
+
+                $self->sendMessage([
+                    chat_id => $msg->{chat}{id},
+                    text => "Eliminado\n"
+                ]);
+            }
+        }
+    }
+}

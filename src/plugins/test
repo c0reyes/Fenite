@@ -1,0 +1,10 @@
+ sub {
+    use Data::Dumper;
+
+    my ($self, $msg) = @_;
+
+    $self->sendMessage([
+        chat_id => $msg->{chat}{id},
+        text => Dumper($msg) . "\n"
+    ]);
+}

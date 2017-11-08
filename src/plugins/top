@@ -1,0 +1,45 @@
+sub {
+    my ($self, $msg) = @_;
+
+    my ($cmd) = $msg->{text} =~ m/^(\S+)/;
+    $cmd =~ s/\@//g;
+
+    # DB
+    my $driver = "SQLite";
+    my $database = "fenite_database.db";
+    my $dsn = "DBI:$driver:dbname=$database";
+    my $userid = "";
+    my $password = "";
+    
+    my $dbh = DBI->connect($dsn, $userid, $password, { RaiseError => 1 })
+        or die $DBI::errstr;
+    
+    my $sth = $dbh->prepare("select codename, count from fenite_mmg where chatid = ?");
+    $sth->bind_param(1, $msg->{chat}{id});
+    $sth->execute() or die $DBI::errstr;
+    
+    my @mmg = ();
+
+    while(my @row = $sth->fetchrow_array()) {
+        push(@mmg, "$row[0]:$row[1]");
+    }
+    $dbh->disconnect();
+
+    my $listado = "";
+
+    my @sorted = sort {(split ":", $b)[1] <=> (split ":", $a)[1]} @mmg;
+
+    for(my $i = 0; $i < @sorted; $i++) {
+        chomp($sorted[$i]);
+        my @s = split(/\:/,$sorted[$i]);
+        $s[0] =~ s/^$msg->{chat}{id}\|//g;
+        $listado .= "*$s[0]* $s[1]\n";        
+    }   
+
+    $self->sendMessage([
+        chat_id => $msg->{chat}{id},
+        text => "Top MMGs: \n\n" . $listado,
+        parse_mode => 'Markdown'
+    ]);
+}
+

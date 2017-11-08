@@ -1,0 +1,54 @@
+sub {
+    use Fenite qw(query update insert);
+
+    my ($self, $msg) = @_;
+
+    my $u = $msg->{from}{username};
+
+    # Operadores
+    my @o = ();
+    @o = query("select codename from fenite_op");
+    my $op = join("|", @o);
+    $op =~ s/\s\n|\n//g;
+
+    # Borrar frase
+    if($msg->{text} =~ /frase/i && $u =~ /$op/i) {
+        if($msg->{reply_to_message}) {
+            my @param;
+
+            if($msg->{reply_to_message}{document}) {
+                @param = ($msg->{reply_to_message}{document}{file_id});
+            }elsif($msg->{reply_to_message}{photo}){
+                @param = ($msg->{reply_to_message}{photo}[2]{file_id});
+            }elsif($msg->{reply_to_message}{voice}){
+                @param = ($msg->{reply_to_message}{voice}{file_id});
+            }elsif($msg->{reply_to_message}{sticker}){
+                @param = ($msg->{reply_to_message}{sticker}{file_id});
+            }elsif($msg->{reply_to_message}{audio}){
+                @param = ($msg->{reply_to_message}{audio}{file_id});
+            }else{
+                @param = ($msg->{reply_to_message}{text});    
+            }
+
+            insert("delete from fenite_frases where frase = ?", @param);
+            
+            $self->sendMessage([
+                chat_id => $msg->{chat}{id},
+                text => "Frase eliminada\n"
+            ]);
+        }
+    }
+
+    # Borrar regex
+    if($msg->{text} =~ /regex/i && $u =~ /$op/i) {
+        if($msg->{reply_to_message}) {
+            my @param = ($msg->{reply_to_message}{text});
+            insert("delete from fenite_regex where regex = ?", @param);
+
+            $self->sendMessage([
+                chat_id => $msg->{chat}{id},
+                text => "Regex eliminado\n"
+            ]);
+        }
+    }
+}
