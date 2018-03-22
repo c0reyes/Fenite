@@ -37,6 +37,7 @@ sub {
         }
     }
 
+    # video => "https://media.giphy.com/media/xT1XGGTKB630Qvsqze/giphy.gif", 
     if($r) {
     	$self->sendDocument([
                 chat_id => $msg->{chat}{id},

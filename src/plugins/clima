@@ -4,6 +4,12 @@ sub {
     use LWP::Simple;
     use Encode qw(encode);
 
+    my @url = (
+        "http://images.intellicast.com/WxImages/Satellite/hicbsat.gif"
+        # "http://www.ssd.noaa.gov/goes/east/carb/avn-l.jpg"
+        # "http://www.ssd.noaa.gov/goes/east/carb/vis-l.jpg"
+    );
+
     my @gif = (
         "http://i.imgur.com/gdEegDs.gif",
         "http://bornsocio.com/demo/viralist/media/uploads/17/55dd5a3a761f9.gif",
@@ -62,31 +68,26 @@ sub {
         video => $gif[rand @gif]
     ]);
 
-    system("wget -q http://www.ssd.noaa.gov/goes/east/carb/avn-l.jpg");
+    for(my $i = 0; $i < @url; $i++) {
+        my $u = $url[$i];
+        my @ff = split(/\//,$u);
+        my $file = $ff[-1];
+ 
+        system("wget -q $u");
 
-    if( -f "avn-l.jpg" ) {
-        $self->sendPhoto([
-            chat_id => $msg->{chat}{id},
-            photo => ["avn-l.jpg"]
-        ]);
-
-        unlink("avn-l.jpg");
-    }else{
-        $self->sendMessage([
+        if( -f $file ) {
+            $self->sendPhoto([
                 chat_id => $msg->{chat}{id},
-                text => "Error al bajar el archivo"
-        ]);
-    }
+                photo => [$file]
+            ]);
 
-    system("wget -q http://www.ssd.noaa.gov/goes/east/carb/vis-l.jpg");
-
-    if( -f "vis-l.jpg") {
-        $self->sendPhoto([
-            chat_id => $msg->{chat}{id},
-            photo => ["vis-l.jpg"]
-        ]);
-
-        unlink("vis-l.jpg");
+            unlink($file);
+        }else{
+            $self->sendMessage([
+                    chat_id => $msg->{chat}{id},
+                    text => "Error al bajar el archivo"
+            ]);
+        }
     }
 
     my $xml = "";

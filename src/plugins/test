@@ -7,4 +7,12 @@
         chat_id => $msg->{chat}{id},
         text => Dumper($msg) . "\n"
     ]);
+    #$self->sendDocument([
+    #        chat_id => $msg->{chat}{id},
+    #        document => "CgADAQADBwAD8wi5REZaaoe2yczzAg",
+    #    ]);
+    #$self->sendPhoto([
+    #    chat_id => $msg->{chat}{id},
+    #    photo => "AgADAQADtKcxG_MIuUQpwCPeRcOGScyY3i8ABEk3U4ncRQrmi9MBAAEC",
+    #    ]);
 }

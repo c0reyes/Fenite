@@ -1,4 +1,4 @@
-sub {
+ sub {
     use Fenite qw(query update insert);
     use Data::Dumper;
 
@@ -27,6 +27,8 @@ sub {
                 @param = ($msg->{reply_to_message}{sticker}{file_id}, "sticker");
             }elsif($msg->{reply_to_message}{audio}){
                 @param = ($msg->{reply_to_message}{audio}{file_id}, "audio");
+            }elsif($msg->{reply_to_message}{video}){
+                @param = ($msg->{reply_to_message}{video}{file_id}, "video");
             }else{
                 @param = ($msg->{reply_to_message}{text}, "message");    
             }

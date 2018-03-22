@@ -1,4 +1,4 @@
-sub {
+ sub {
     use Fenite qw(query update insert);
 
     my ($self, $msg) = @_;
@@ -26,6 +26,8 @@ sub {
                 @param = ($msg->{reply_to_message}{sticker}{file_id});
             }elsif($msg->{reply_to_message}{audio}){
                 @param = ($msg->{reply_to_message}{audio}{file_id});
+            }elsif($msg->{reply_to_message}{video}){
+                @param = ($msg->{reply_to_message}{audio}{video});
             }else{
                 @param = ($msg->{reply_to_message}{text});    
             }

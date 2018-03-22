@@ -1,0 +1,72 @@
+sub {
+    use Data::Dumper;
+    use JSON;
+    use LWP::Simple;
+
+    my ($self, $msg) = @_;
+
+    if($msg->{reply_to_message}) {
+        my $file_id;
+        my $mime_type;
+        my $duration;
+
+        if($msg->{reply_to_message}{document}) {
+            $file_id   = $msg->{reply_to_message}{document}{file_id};
+            $mime_type = $msg->{reply_to_message}{document}{mime_type};
+            $duration = $msg->{reply_to_message}{document}{duration};
+        }elsif($msg->{reply_to_message}{audio}){
+            $file_id   = $msg->{reply_to_message}{audio}{file_id};
+            $mime_type = $msg->{reply_to_message}{audio}{mime_type};
+            $duration = $msg->{reply_to_message}{audio}{duration};
+        }elsif($msg->{reply_to_message}{video}){
+            $file_id   = $msg->{reply_to_message}{video}{file_id};
+            $mime_type = $msg->{reply_to_message}{video}{mime_type};
+            $duration = $msg->{reply_to_message}{video}{duration};
+        }
+
+        if(!$file_id) {
+            $self->sendMessage([
+                chat_id => $msg->{chat}{id},
+                text => "Dime bi!"
+            ]);
+            return;
+        }
+
+        # Download
+        my $u = "https://api.telegram.org/bot$self->{config}{token}/getFile?file_id=$file_id";
+        print($u);
+
+        my $r = get($u);
+        print($r);
+
+        my $json = JSON->new->utf8->decode($r);
+
+        my $f = $json->{result}->{file_path};
+
+        $u = "https://api.telegram.org/file/bot$self->{config}{token}/$f";
+        system("wget -q -O $file_id $u");
+
+        # Convert
+        #system("/home/ec2-user/ffmpeg/ffmpeg -i $file_id -ac 1 -map 0:a -codec:a opus -strict -2 -b:a 128k $file_id.ogg");
+        system("/home/ec2-user/ffmpeg/ffmpeg -i $file_id -c:a libvorbis -b:a 16k -vbr off -ar 16k $file_id.ogg");
+
+        # Enviar
+        if(-f "$file_id.ogg") {
+            $self->sendVoice([
+                chat_id => $msg->{chat}{id},
+                duration => $duration,
+                voice => ["$file_id.ogg"],
+            ]);
+        }else{
+            $self->sendMessage([
+                chat_id => $msg->{chat}{id},
+                text => "Un puto error ha ocurrido."
+            ]);
+        }
+
+        # Delete
+        unlink("$file_id");
+        unlink("$file_id.ogg");
+    }
+}
+

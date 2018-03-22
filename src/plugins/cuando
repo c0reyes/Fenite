@@ -20,28 +20,38 @@ sub {
         if($msg->{reply_to_message}) {
             my @param;
 
-            $msg->{text} =~ s/^add\s(.*)|^del\s(.*)/$1/;
-
-            push(@param, $msg->{text});
-
-            if($msg->{reply_to_message}{document}) {
-                push(@param, $msg->{reply_to_message}{document}{file_id});
-                push(@param, "document");
-            }elsif($msg->{reply_to_message}{photo}){
-                push(@param, $msg->{reply_to_message}{photo}[2]{file_id});
-                push(@param, "photo");
-            }elsif($msg->{reply_to_message}{voice}){
-                push(@param, $msg->{reply_to_message}{voice}{file_id}); 
-                push(@param, "voice");
-            }elsif($msg->{reply_to_message}{sticker}){
-                push(@param, $msg->{reply_to_message}{sticker}{file_id});
-                push(@param, "sticker");
-            }else{
-                push(@param, $msg->{reply_to_message}{text});
-                push(@param, "message");    
-            }
-
             if($c) {
+                $msg->{text} =~ s/^add\s(.*)/$1/;
+
+                push(@param, $msg->{text});
+
+                if($msg->{reply_to_message}{document}) {
+                    push(@param, $msg->{reply_to_message}{document}{file_id});
+                    push(@param, "document");
+                }elsif($msg->{reply_to_message}{photo}){
+		    if($msg->{reply_to_message}{photo}[2]) {
+                    	push(@param, $msg->{reply_to_message}{photo}[2]{file_id});
+		    }else{
+                    	push(@param, $msg->{reply_to_message}{photo}[1]{file_id});
+		    }
+                    push(@param, "photo");
+                }elsif($msg->{reply_to_message}{voice}){
+                    push(@param, $msg->{reply_to_message}{voice}{file_id}); 
+                    push(@param, "voice");
+                }elsif($msg->{reply_to_message}{sticker}){
+                    push(@param, $msg->{reply_to_message}{sticker}{file_id});
+                    push(@param, "sticker");
+                }elsif($msg->{reply_to_message}{audio}){
+                    push(@param, $msg->{reply_to_message}{audio}{file_id});
+                    push(@param, "audio");
+                }elsif($msg->{reply_to_message}{video}){
+                    push(@param, $msg->{reply_to_message}{video}{file_id});
+                    push(@param, "video");
+                }else{
+                    push(@param, $msg->{reply_to_message}{text});
+                    push(@param, "message");    
+                }
+
                 insert("insert into fenite_rep (key,frase, type) values (?,?,?)", @param);
 
                 $self->sendMessage([
@@ -49,11 +59,14 @@ sub {
                     text => "Agregado\n"
                 ]);
             }else{
-                insert("delete from fenite_rep where key = ? and frase = ? and type = ?", @param);
+                $msg->{text} =~ s/^del\s(.*)/$1/;
+                @param = ();
+                push(@param, $msg->{text});
+                insert("delete from fenite_rep where key = ?", @param);
 
                 $self->sendMessage([
                     chat_id => $msg->{chat}{id},
-                    text => "Eliminado\n"
+                    text => "Eliminado"
                 ]);
             }
         }
