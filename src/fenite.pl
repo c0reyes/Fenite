@@ -133,6 +133,8 @@ sub _loop {
 sub _process {
     my $msg = shift;
 	my $u = $msg->{from}{username};
+    my $id = $msg->{from}{id};
+
     if(!$u) {
         $u = $msg->{from}{first_name};
     }
@@ -164,7 +166,7 @@ sub _process {
         $text = (split(/\"/,JSON->new->utf8->encode($operation->results)))[7];
         #$bot->_log($text);
 
-        unlink("$file_id.ogg");
+        unlink($file_id . ".ogg");
     }
 
     if($text =~ /$regex/i) {
@@ -176,7 +178,7 @@ sub _process {
 
         my $nn = $u;
         $nn =~ s/\@|\s//g;
-        mmg($msg->{chat}{id}, $nn);
+        mmg($msg->{chat}{id}, $nn, $id);
         return;
     }
 
@@ -276,25 +278,41 @@ sub _send {
 sub mmg {
     my $chatid = shift;
     my $codename = shift;
+    my $id = shift;
 
     my $year = strftime "%Y", localtime;
 
     # Select
-    my $query = "select count(*) from fenite_mmg where codename = ? and chatid = ? and year = ?";
-    my @param = ($codename, $chatid, $year);
+    my $query = "select count(*) from fenite_mmg where id = ? and chatid = ? and year = ?";
+    my @param = ($id, $chatid, $year);
     my @ret = query($query, @param);
 
     my $qry = "";
+    my @param_qry = ();
 
     if($ret[0] > 0) {
-        # Update
-        $qry = "update fenite_mmg set count = count + 1 where codename = ? and chatid = ? and year = ?";
+        # UPDATE CON ID
+        $qry = "update fenite_mmg set count = count + 1, codename = ? where id = ? and chatid = ? and year = ?";
+        @param_qry = ($codename, $id, $chatid, $year);
     }else{
-        # Insert
-        $qry = "insert into fenite_mmg (codename, chatid, count, year) values (?,?,1,?)";
+        @param = ();
+        @ret = ();
+
+        $query = "select count(*) from fenite_mmg where codename = ? and chatid = ? and year = ?";
+        @param = ($codename, $chatid, $year);
+        @ret = query($query, @param);
+
+        if($ret[0] > 0) {
+            # Update
+            $qry = "update fenite_mmg set count = count + 1, id = ? where codename = ? and chatid = ? and year = ?";
+            @param_qry = ($id, $codename, $chatid, $year);
+        }else{
+            # Insert
+            $qry = "insert into fenite_mmg (codename, chatid, count, year, id) values (?,?,1,?,?)";
+            @param_qry = ($codename, $chatid, $year, $id);
+        }
     }
 
-    my @param_qry = ($codename, $chatid, $year);
     insert($qry, @param_qry);
 }
 
