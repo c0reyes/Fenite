@@ -10,6 +10,16 @@ No es necesario hacer mucho para ponerlo a funcionar, hacer una copia local y ed
 
 [Telegram::Bot](https://github.com/lassandroan/perl-telegram-bot) install
 
+### Debian
+
+```
+sudo apt-get install libyaml-perl
+sudo apt-get install libhttp-daemon-perl
+sudo apt-get install libforks-perl
+sudo apt-get install libclass-dbi-sqlite-perl
+sudo apt-get install libxml-rsslite-perl
+```
+
 ## Running 
 
 ./fenite.pl
