@@ -7,9 +7,9 @@ use HTTP::Daemon;
 use POSIX qw(strftime);
 use Encode qw(encode);
 use Data::Dumper;
-use Google::Cloud::Speech;
 use JSON;
 use LWP::Simple;
+use IO::Socket::UNIX;
 
 use forks;
 use forks::shared deadlock => {detect=> 1, resolve => 1};
@@ -31,8 +31,6 @@ my %resp = ();
 share(@mmgs);
 share($regex);
 share(%resp);
-share(@send_messages);
-share(@all);
 
 # Bot
 my $bot = new Telegram::Bot;
@@ -47,25 +45,25 @@ local $SIG{__WARN__} = sub {
 open(STDOUT, ">/dev/null");
 open(STDERR, ">/dev/null");
 
-sub sendmsg {
-	my $chat = shift;
-    my $msg = shift;
-    push(@send_messages, $chat . "||" . $msg);
-}
+sub _reload {
+    my $SOCK_PATH = "$ENV{HOME}/fenite.sock";
+    
+    if(-e $SOCK_PATH) { 
+	    unlink($SOCK_PATH);
+    }
 
-sub sendToChat {
+    my $server = IO::Socket::UNIX->new(
+        Type => SOCK_STREAM(),
+        Local => $SOCK_PATH,
+        Listen => 1,
+    );
+
     while(1) {
-        if(@send_messages > 0) {
-            my $m = shift(@send_messages);
-            my @a = split(/\|\|/, $m);
-            $bot->sendMessage([
-                chat_id => $a[0],
-                text => $a[1],
-                parse_mode => 'Markdown',
-                disable_web_page_preview => 'true'
-            ]);
-        }
-        sleep(0.3);
+        next unless my $conn = $server->accept();
+	    $conn->autoflush(1);
+	    while(<$conn>) {
+	       _load();
+	    }
     }
 }
 
@@ -103,37 +101,18 @@ sub _load {
 
 _load();
 
-# Monitor messages queue
-threads->create(\&sendToChat)->detach();
+# Reload thread
+threads->create(\&_reload)->detach();
 
-# Monitor all message queue
-threads->create(\&_loop)->detach();
-
-# sleep(0.3);
-
-my $lastupdate = 0;
 while(1) {
-    my $msg = $bot->start($lastupdate);
-    $lastupdate = $msg->{update_id};
-    #print($lastupdate);
-    #$bot->_log(Dumper($msg));
-    push(@all, $msg);
-}
-
-sub _loop {
-    while(1) {
-        if(@all > 0) {
-            my $m = shift(@all);
-            threads->create(\&_process, $m)->detach();
-        }
-        sleep(0.3);
-    }
+    my $msg = $bot->start();
+    _process($msg);
 }
 
 sub _process {
     my $msg = shift;
 
-	my $username = $msg->{from}{username};
+    my $username = $msg->{from}{username};
     my $firstname = $msg->{from}{first_name};
     my $id = $msg->{from}{id};
     my $tme = "[" . encode("utf8", $firstname) . "](tg://user?id=" . $id. ")";
@@ -154,49 +133,6 @@ sub _process {
     $text .= $msg->{caption};
     $text .= $msg->{reply_to_message}{text} if $text !~ /^\//;
     $text .= $msg->{reply_to_message}{caption} if $text !~ /^\//;
-
-    # Voice to Text
-    if($msg->{voice} || ($msg->{reply_to_message}{voice} && $text !~ /^\//)) {
-        my $file_id = $msg->{voice}{file_id} || $msg->{reply_to_message}{voice}{file_id};
-
-        my $u = "https://api.telegram.org/bot$bot->{config}{token}/getFile?file_id=$file_id";
-        my $r = get($u);
-        my $json = JSON->new->utf8->decode($r);
-
-        my $f = $json->{result}->{file_path};
-
-        $u = "https://api.telegram.org/file/bot$bot->{config}{token}/$f";
-        system("wget -q -O $file_id.ogg $u");
-
-        my $speech = Google::Cloud::Speech->new(
-            file    => "$file_id.ogg",
-            encoding => 'ogg_opus',
-            language => 'es-DO',
-            secret_file => '/home/ec2-user/fenite/api.json'
-        );
-
-        my $operation = $speech->syncrecognize();
-
-        $text .= (split(/\"/,JSON->new->utf8->encode($operation->results)))[7];
-
-        unlink("$file_id.ogg");
-    }
-
-    # Read photo from LaTumba
-    if(($msg->{photo} || ($msg->{reply_to_message}{photo} && $text !~ /^\//)) && $msg->{chat}{id} eq "-1001071751643") {
-        my $file_id = $msg->{photo}{file_id} || $msg->{reply_to_message}{photo}{file_id};
-
-        my $u = "https://api.telegram.org/bot$bot->{config}{token}/getFile?file_id=$file_id";
-        my $r = get($u);
-        my $json = JSON->new->utf8->decode($r);
-
-        my $f = $json->{result}->{file_path};
-
-        $u = "https://api.telegram.org/file/bot$bot->{config}{token}/$f";
-        system("wget -q -O $file_id.jpg $u");
-        $text .= qx/tesseract $file_id.jpg -/;
-        unlink("$file_id.jpg");
-    } 
 
     # Responder a los MMGS
     if($text =~ /$regex/i) {
@@ -224,17 +160,10 @@ sub _process {
         return;
     }
 
-    # Reload
-    if($text =~ /reload/i && $username =~ /$op/i) {
-        _load();
-        sendmsg($msg->{chat}{id}, "reload...");
-        return;
-    }
-
     # Commandos en plugins
     if($msg->{text} =~ /^\//) {
-        $bot->process($msg);
-	    return;
+        threads->create(sub{$bot->process($msg);})->detach();
+        return;
     }else{
         # Responder texto
         foreach my $key (keys %resp) {
@@ -309,7 +238,12 @@ sub _send {
         ]);
     }else{
         $m = $codename . " " . $t[0];
-        sendmsg($msg->{chat}{id}, $m);
+        $bot->sendMessage([
+            chat_id => $msg->{chat}{id},
+            text => $m,
+            parse_mode => 'Markdown',
+            disable_web_page_preview => 'true'
+        ]);
     }
 }
 
