@@ -19,7 +19,7 @@ sub {
     my $year = strftime "%Y", localtime;
     $year = $msg->{text} if($msg->{text});
 
-    my $sth = $dbh->prepare("select codename, count from fenite_mmg where chatid = ? and year = ?");
+    my $sth = $dbh->prepare("select codename, count, firstname from fenite_mmg where chatid = ? and year = ?");
     $sth->bind_param(1, $msg->{chat}{id});
     $sth->bind_param(2, $year);
     $sth->execute() or die $DBI::errstr;
@@ -27,7 +27,7 @@ sub {
     my @mmg = ();
 
     while(my @row = $sth->fetchrow_array()) {
-        push(@mmg, "$row[0]:$row[1]");
+        push(@mmg, "$row[0]:$row[1]:$row[2]");
     }
     $dbh->disconnect();
 
@@ -39,7 +39,12 @@ sub {
         chomp($sorted[$i]);
         my @s = split(/\:/,$sorted[$i]);
         $s[0] =~ s/^$msg->{chat}{id}\|//g;
-        $listado .= "*$s[0]* $s[1]\n";        
+        if($s[2]) {
+             $listado .= "*$s[2]* -> $s[1]\n"; 
+        }else{
+             $listado .= "*$s[0]* -> $s[1]\n"; 
+        }
+              
     }   
 
     $self->sendMessage([
