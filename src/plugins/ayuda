@@ -1,15 +1,13 @@
 sub {
-    use POSIX qw(strftime);
-
     my ($self, $msg) = @_;
 
-    my $cmd = "Comandos: \n\n";
-    $cmd .= "/top - Top de mmgs\n";
-    $cmd .= "/clima - Foto Satellite del caribe\n";
-    $cmd .= "/temblo - Temblores recientes\n";
+    my $help = "/clima - Clima de República Dominicana\n";
+    $help .= "/top - Top de mmsgs\n";
+    $help .= "/temblo - Temblores de tierra recientes en República Dominicana\n";
+    $help .= "/got - Cuenta regresiva proximo episodio de GoT\n";
 
     $self->sendMessage([
         chat_id => $msg->{chat}{id},
-	    text => "$cmd"
+        text => $help
     ]);
 }

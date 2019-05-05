@@ -1,6 +1,13 @@
 sub {
     use Fenite qw(query update insert);
-    use Data::Dumper;
+    use IO::Socket::UNIX;
+
+    my $SOCK_PATH = "$ENV{HOME}/fenite.sock";
+
+    my $socket = IO::Socket::UNIX->new(
+        Type => SOCK_STREAM(),
+        Peer => $SOCK_PATH,
+    );
 
     my ($self, $msg) = @_;
 
@@ -14,13 +21,10 @@ sub {
 
     # Agregar frase
     if($msg->{text} =~ /^add|^del/i && $u =~ /$op/i) {
-        my $c = 0;
-        $c = 1 if($msg->{text} =~ /^add/);
-
         if($msg->{reply_to_message}) {
             my @param;
 
-            if($c) {
+            if($msg->{text} =~ /^add/) {
                 $msg->{text} =~ s/^add\s(.*)/$1/;
 
                 push(@param, $msg->{text});
@@ -29,11 +33,11 @@ sub {
                     push(@param, $msg->{reply_to_message}{document}{file_id});
                     push(@param, "document");
                 }elsif($msg->{reply_to_message}{photo}){
-		    if($msg->{reply_to_message}{photo}[2]) {
+		            if($msg->{reply_to_message}{photo}[2]) {
                     	push(@param, $msg->{reply_to_message}{photo}[2]{file_id});
-		    }else{
+		            }else{
                     	push(@param, $msg->{reply_to_message}{photo}[1]{file_id});
-		    }
+		            }
                     push(@param, "photo");
                 }elsif($msg->{reply_to_message}{voice}){
                     push(@param, $msg->{reply_to_message}{voice}{file_id}); 
@@ -69,6 +73,8 @@ sub {
                     text => "Eliminado"
                 ]);
             }
+
+	        print $socket "reload\n";
         }
     }
 }

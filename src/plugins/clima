@@ -14,7 +14,8 @@ sub {
         "http://i.imgur.com/gdEegDs.gif",
         "http://bornsocio.com/demo/viralist/media/uploads/17/55dd5a3a761f9.gif",
         "http://bornsocio.com/demo/viralist/media/uploads/17/55dd5a563204c.gif",
-        "http://bornsocio.com/demo/viralist/media/uploads/17/55dd5b2a49afa.gif"
+        "http://bornsocio.com/demo/viralist/media/uploads/17/55dd5b2a49afa.gif",
+        "CgADBAADmwADVfw1UNQPSukEGxCZAg"
     );
 
     my %WeatherEmoji = (
@@ -63,9 +64,9 @@ sub {
 
     my ($self, $msg) = @_;
 
-    $self->sendVideo([
-        chat_id => $msg->{chat}{id},
-        video => $gif[rand @gif]
+    $self->sendAnimation([
+	   chat_id => $msg->{chat}{id},
+	   animation => $gif[rand @gif]
     ]);
 
     for(my $i = 0; $i < @url; $i++) {
@@ -116,10 +117,6 @@ sub {
     $a =~ s/\ //;
     $t[1] =~ s/\ //;
     my $emoji = $WeatherEmoji{$a} ? $WeatherEmoji{$a} : $WeatherEmoji{$t[1]}; 
-
-    #$r =~ s/\"|&gt;|\n|\r//g;
-    #$r =~ s/&#176;/°/g;
-    #my @s = split(/&lt;img src=/, $r);
 
     $self->sendMessage([
         chat_id => $msg->{chat}{id},

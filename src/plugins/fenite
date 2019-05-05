@@ -1,0 +1,79 @@
+sub {
+    use Fenite qw(query update insert);
+    use IO::Socket::UNIX;
+
+    my $SOCK_PATH = "$ENV{HOME}/fenite.sock";
+
+    my $socket = IO::Socket::UNIX->new(
+        Type => SOCK_STREAM(),
+        Peer => $SOCK_PATH,
+    );
+
+    my ($self, $msg) = @_;
+
+    my $u = $msg->{from}{username};
+
+    # Operadores
+    my @o = ();
+    @o = query("select codename from fenite_op");
+    my $op = join("|", @o);
+    $op =~ s/\s\n|\n//g;
+
+    my $m = "Ahh pero yo soy brujo MMG\n";
+
+    # Agregar frase
+    if($msg->{text} =~ /add|del/i && $u =~ /$op/i) {
+        if($msg->{reply_to_message}) {
+            my @param;
+
+            if($msg->{reply_to_message}{document}) {
+                @param = ($msg->{reply_to_message}{document}{file_id}, "document");
+            }elsif($msg->{reply_to_message}{photo}){
+                if($msg->{reply_to_message}{photo}[2]) {
+                    @param = ($msg->{reply_to_message}{photo}[2]{file_id}, "photo");
+                }else{
+                    @param = ($msg->{reply_to_message}{photo}[1]{file_id}, "photo");
+                }
+            }elsif($msg->{reply_to_message}{voice}){
+                @param = ($msg->{reply_to_message}{voice}{file_id}, "voice");
+            }elsif($msg->{reply_to_message}{sticker}){
+                @param = ($msg->{reply_to_message}{sticker}{file_id}, "sticker");
+            }elsif($msg->{reply_to_message}{audio}){
+                @param = ($msg->{reply_to_message}{audio}{file_id}, "audio");
+            }elsif($msg->{reply_to_message}{animation}){
+                @param = ($msg->{reply_to_message}{animation}{file_id}, "animation");
+            }elsif($msg->{reply_to_message}{video}){
+                @param = ($msg->{reply_to_message}{video}{file_id}, "video");
+            }elsif($msg->{text} =~ /frase/){
+                @param = ($msg->{reply_to_message}{text}, "message");    
+            }else{
+                @param = ($msg->{reply_to_message}{text});
+            }
+
+            if($msg->{text} =~ /add regex/) {
+                ## Add regex
+                insert("insert into fenite_regex (regex) values (?)", @param);
+                $m = "Regex agregado\n";
+            }elsif($msg->{text} =~ /del regex/) {
+                ## Del regex
+                insert("delete from fenite_regex where regex = ?", @param);
+                $m = "Regex eliminado\n";
+            }elsif($msg->{text} =~ /add frase/) {
+                ## Add frase
+                insert("insert into fenite_frases (frase, type) values (?,?)", @param);
+                $m = "Frase agregada\n";
+            }elsif($msg->{text} =~ /del frase/) {
+                ## Del frase
+                insert("delete from fenite_frases where frase = ?", @param);
+                $m = "Frase eliminada\n";
+            }
+
+	        print $socket "reload\n";    
+        }
+    }
+
+    $self->sendMessage([
+        chat_id => $msg->{chat}{id},
+        text => $m
+    ]);
+}
