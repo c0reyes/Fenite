@@ -1,9 +1,17 @@
 sub {
-    use POSIX qw(strftime);
     use XML::RSSLite;
     use LWP::Simple;
+    use DateTime::Format::Strptime;
 
     my ($self, $msg) = @_;
+
+    my $format = "%a, %d %b %Y %T %z";
+    my $myzone = "America/Santo_Domingo";
+
+    my $strp = DateTime::Format::Strptime->new(
+        on_error => 'croak', 
+        pattern => $format
+    );
 
     my $xml = "";
     my %result = "";
@@ -12,7 +20,7 @@ sub {
         "CgADBAADBwEAAjm6ZFKW5UNtz3zJqgI",
         "CgADBAADGQEAAuwRZVJrlyqoLkuhzAI",
         "CgADBAADoAADEJhtUl-D80aWhi3xAg"
-        );
+    );
 
     $xml = get("http://earthquake-report.com/feeds/recent-eq");
 
@@ -22,9 +30,12 @@ sub {
 
     foreach $item (@{$result{'item'}}) {
         if($item->{'title'}=~/Dominican Republic/i) {
-            $r .= "Title: $item->{'title'}\n" .
-                "Link:  $item->{'link'}\n" .
-                "Date:  $item->{'pubDate'}\n\n";
+            my $dt = $strp->parse_datetime($item->{'pubDate'});
+            $dt->set_time_zone($myzone);
+
+            $r .= "*$item->{'title'}*\n" .
+                "_" . $dt->strftime($format) . "_ \n" .
+                "$item->{'link'}\n\n";
         }
     }
 
@@ -37,7 +48,8 @@ sub {
         $self->sendMessage([
             chat_id => $msg->{chat}{id},
             text => $r,
-            disable_web_page_preview => "true"
+            disable_web_page_preview => "true",
+            parse_mode => "Markdown"
         ]);
     }else{
         $self->sendMessage([
