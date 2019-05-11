@@ -18,6 +18,7 @@ sudo apt-get install libhttp-daemon-perl
 sudo apt-get install libforks-perl
 sudo apt-get install libclass-dbi-sqlite-perl
 sudo apt-get install libxml-rsslite-perl
+sudo apt-get install libdatetime-format-strptime-perl
 ```
 
 ## Running 
