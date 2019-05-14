@@ -35,6 +35,9 @@ share(%resp);
 # Bot
 my $bot = new Telegram::Bot;
 
+my $codename = $bot->{config}{codename};
+my $ownchat = $bot->{config}{ownchat};
+
 $SIG{CHLD} = 'IGNORE';
 
 local $SIG{__WARN__} = sub {
@@ -42,8 +45,10 @@ local $SIG{__WARN__} = sub {
     print $message . "\n";
 };
 
-open(STDOUT, ">/dev/null");
-open(STDERR, ">/dev/null");
+if(!$bot->{config}{log}{state}) {
+    open(STDOUT, ">/dev/null");
+    open(STDERR, ">/dev/null");
+}
 
 sub _reload {
     my $SOCK_PATH = "$ENV{HOME}/fenite.sock";
@@ -117,6 +122,33 @@ sub _process {
     my $id = $msg->{from}{id};
     my $tme = "[" . encode("utf8", $firstname) . "](tg://user?id=" . $id. ")";
 
+    if($msg->{new_chat_member}) {
+        if($msg->{new_chat_member}{username} eq $codename) {
+            my $text = $tme . " me entro en el grupo *" . $msg->{chat}{title} . "*";
+            _msg($ownchat, $text);
+
+            $text = "Hola grupo, el mmg de " . $tme . " me invito!!";
+            _msg($msg->{chat}{id}, $text);
+        }else{
+            my $nme = "[" . encode("utf8", $msg->{new_chat_member}{firstname}) . "](tg://user?id=" . $msg->{new_chat_member}{id} . ")";
+            my $text = $nme . " klk";
+
+            _msg($msg->{chat}{id}, $text);
+        }
+        return;
+    }
+
+    if($msg->{left_chat_member}) {
+        if($msg->{left_chat_member}{username} eq $codename) {
+            my $text = $tme . " me saco del grupo *" . $msg->{chat}{title} . "*";
+            _msg($ownchat, $text);
+        }else{
+            my $text = "Que le vaya bien a ese mmg";
+            _msg($msg->{chat}{id}, $text);
+        }
+        return;
+    }
+
     my $username_reply;
     my $firstname_reply;
     my $id_reply;
@@ -151,7 +183,7 @@ sub _process {
         my $m = $mmgs[rand @mmgs];
         chomp($m);
         
-        if((!$firstname_reply && !$username_reply) || $username_reply eq "fenite_bot") {
+        if((!$firstname_reply && !$username_reply) || $username_reply eq $codename) {
             _send($msg, $m, $tme);
         }else{
             _send($msg, $m, $tme_reply);
@@ -174,6 +206,18 @@ sub _process {
         }
     }
 
+}
+
+sub _msg {
+    my $id = shift;
+    my $text = shift;
+
+    $bot->sendMessage([
+        chat_id => $id,
+        text => $text,
+        parse_mode => 'Markdown',
+        disable_web_page_preview => 'true'
+    ]);
 }
 
 sub _send {
