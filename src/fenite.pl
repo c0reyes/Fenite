@@ -149,6 +149,11 @@ sub _process {
         return;
     }
 
+    if($msg->{migrate_from_chat_id} && $msg->{migrate_to_chat_id}) {
+        supergroup($msg->{migrate_from_chat_id}, $msg->{migrate_to_chat_id});
+        return;
+    }
+
     my $username_reply;
     my $firstname_reply;
     my $id_reply;
@@ -289,6 +294,16 @@ sub _send {
             disable_web_page_preview => 'true'
         ]);
     }
+}
+
+sub supergroup {
+    my $from_chat_id = shift;
+    my $to_chat_id = shift;
+    
+    my $query = "update fenite_mmg set chatid = ? where chatid = ?";
+    my @params = ($to_chat_id, $from_chat_id);
+
+    update($query, @params);
 }
 
 sub mmg {
