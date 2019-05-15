@@ -130,7 +130,7 @@ sub _process {
             $text = "Hola grupo, el mmg de " . $tme . " me invito!!";
             _msg($msg->{chat}{id}, $text);
         }else{
-            my $nme = "[" . encode("utf8", $msg->{new_chat_member}{firstname}) . "](tg://user?id=" . $msg->{new_chat_member}{id} . ")";
+            my $nme = "[" . encode("utf8", $msg->{new_chat_member}{first_name}) . "](tg://user?id=" . $msg->{new_chat_member}{id} . ")";
             my $text = $nme . " klk";
 
             _msg($msg->{chat}{id}, $text);
