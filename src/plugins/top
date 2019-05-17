@@ -13,8 +13,13 @@ sub {
     my $query = "select codename, count, firstname from fenite_mmg where chatid = ? and year = ?";
     my @param;
     push(@param, $msg->{chat}{id});
-    push(@param, $year);
-   
+
+    if($year eq "all") {
+        $query = "select codename, sum(count), firstname from fenite_mmg where chatid = ? group by codename, firstname";
+    }else{
+        push(@param, $year);
+    }
+    
     my @mmg = query($query, @param);
 
     my $listado = "";
