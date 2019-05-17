@@ -43,10 +43,10 @@ sub {
    	 	]);
     }else{
     	if(isOperator($msg->{from}{id}, "O")) {
-    		if($msg->{reply_to_message}{from}{id}) {
+    		if($msg->{reply_to_message}{from}{id} && !isOperator($msg->{reply_to_message}{from}{id})) {
     			addOperator($msg->{reply_to_message}{from}{id}, $msg->{reply_to_message}{from}{username}, "U");
     			print $socket "reload\n";
-    			
+
     			$self->sendMessage([
         			chat_id => $msg->{chat}{id},
         			text => "Otro mmg al que le tengo que hacer caso!",
