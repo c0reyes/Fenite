@@ -1,0 +1,73 @@
+sub {
+    use Fenite qw(isOperator addOperator haveOwner);
+    use IO::Socket::UNIX;
+
+    my $SOCK_PATH = "$ENV{HOME}/fenite.sock";
+
+    my $socket = IO::Socket::UNIX->new(
+        Type => SOCK_STREAM(),
+        Peer => $SOCK_PATH,
+    );
+
+    my ($self, $msg) = @_;
+
+    if($msg->{text} eq "hola") {
+    	if(isOperator($msg->{from}{id})) {
+    		$self->sendMessage([
+        		chat_id => $msg->{chat}{id},
+        		text => "💩",
+        		parse_mode => 'Markdown',
+        		disable_web_page_preview => 'true'
+   	 		]);
+    		return;
+    	}
+
+    	if(haveOwner()) {
+    		$self->sendMessage([
+        		chat_id => $msg->{chat}{id},
+        		text => "💩",
+        		parse_mode => 'Markdown',
+        		disable_web_page_preview => 'true'
+   	 		]);
+    		return;
+    	}
+
+    	addOperator($msg->{from}{id}, $msg->{from}{username}, "O");
+    	print $socket "reload\n";
+
+    	$self->sendMessage([
+        	chat_id => $msg->{chat}{id},
+        	text => "You are my master!!!",
+        	parse_mode => 'Markdown',
+        	disable_web_page_preview => 'true'
+   	 	]);
+    }else{
+    	if(isOperator($msg->{from}{id}, "O")) {
+    		if($msg->{reply_to_message}{from}{id}) {
+    			addOperator($msg->{reply_to_message}{from}{id}, $msg->{reply_to_message}{from}{username}, "U");
+    			print $socket "reload\n";
+    			
+    			$self->sendMessage([
+        			chat_id => $msg->{chat}{id},
+        			text => "Otro mmg al que le tengo que hacer caso!",
+        			parse_mode => 'Markdown',
+        			disable_web_page_preview => 'true'
+   	 			]);
+    		}else{
+    			$self->sendMessage([
+        			chat_id => $msg->{chat}{id},
+        			text => "Anja, yo soy brujo ahora?",
+        			parse_mode => 'Markdown',
+        			disable_web_page_preview => 'true'
+   	 			]);
+    		}
+    	}else{
+    		$self->sendMessage([
+        		chat_id => $msg->{chat}{id},
+        		text => "💩",
+        		parse_mode => 'Markdown',
+        		disable_web_page_preview => 'true'
+   	 		]);
+    	}
+    }
+}

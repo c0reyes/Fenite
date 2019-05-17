@@ -1,7 +1,7 @@
 package Fenite;
 
 use Exporter qw(import);
-our @EXPORT_OK = qw(query insert update);
+our @EXPORT_OK = qw(query insert update isOperator addOperator haveOwner);
 
 use DBI;
 
@@ -57,6 +57,40 @@ sub update {
 	my @param = @_;
 
 	return insert($query, @param);
+}
+
+sub haveOwner {
+    my $query = "select count(*) from fenite_op where type = 'O'";
+    
+    my @result = query($query);
+
+    return $result[0];
+}
+
+sub isOperator {
+    my $id = shift;
+    my $type = shift;
+
+    my $query = "select count(*) from fenite_op where id = ?";
+    my @param = ($id);
+
+    if($type) {
+        $query = "select count(*) from fenite_op where id = ? and type = ?";
+        push(@param, $type);
+    }
+
+    my @result = query($query, @param);
+
+    return $result[0];
+}
+
+sub addOperator {
+    my $id = shift;
+    my $codename = shift;
+    my $type = shift;
+
+    my @param = ($id, $codename, $type);
+    insert("insert into fenite_op (id, codename, type) values (?,?,?)", @param);
 }
 
 1;

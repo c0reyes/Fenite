@@ -1,5 +1,5 @@
 sub {
-    use Fenite qw(query update insert);
+    use Fenite qw(query update insert isOperator);
     use IO::Socket::UNIX;
 
     my $SOCK_PATH = "$ENV{HOME}/fenite.sock";
@@ -11,18 +11,10 @@ sub {
 
     my ($self, $msg) = @_;
 
-    my $u = $msg->{from}{username};
-
-    # Operadores
-    my @o = ();
-    @o = query("select codename from fenite_op");
-    my $op = join("|", @o);
-    $op =~ s/\s\n|\n//g;
-
     my $m = "Ahh pero yo soy brujo MMG\n";
 
     # Agregar frase
-    if($msg->{text} =~ /add|del/i && $u =~ /$op/i) {
+    if($msg->{text} =~ /add|del/i && isOperator($msg->{from}{id})) {
         if($msg->{reply_to_message}) {
             my @param;
 

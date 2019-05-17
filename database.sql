@@ -30,3 +30,6 @@ create table fenite_rep (
 	frase text not null,
 	type char(50) not null
 );
+
+alter table fenite_op add id varchar(100);
+alter table fenite_op add type varchar(2);
