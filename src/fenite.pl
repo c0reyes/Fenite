@@ -21,8 +21,6 @@ my @send_messages;
 my @all;
 
 my @mmgs = ();
-my $op = "";
-my @o = ();
 my @mm = ();
 my @r = ();
 my $regex = "";
@@ -77,13 +75,6 @@ sub _load {
     undef @mmgs;
     @mmgs = ();
     @mmgs = query("select frase, type from fenite_frases order by random()");
-
-    # Operadores
-    undef @o;
-    @o = ();
-    @o = query("select codename from fenite_op");
-    $op = join("|", @o);
-    $op =~ s/\s\n|\n//g;
 
     # Regex
     undef $regex;
