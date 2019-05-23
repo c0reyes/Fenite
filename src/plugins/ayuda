@@ -1,11 +1,18 @@
 sub {
     my ($self, $msg) = @_;
 
-    my $help = "/clima - Clima de República Dominicana\n";
-    $help .= "/top <año|all> - Top de mmsgs\n";
-    $help .= "/temblo - Temblores de tierra recientes en República Dominicana\n";
-    $help .= "/got - Cuenta regresiva proximo episodio de GoT\n";
+    my ($cmd) = $msg->{text} =~ m/^(\S+)/;
+    $cmd =~ s/\@//g;
 
+    my $help = "/clima - Clima de República Dominicana\n";
+    $help .= "/top - <año|all> Top de mmsgs\n";
+    $help .= "/temblo - Temblores de tierra recientes en República Dominicana\n";
+    $help .= "/got - Cuenta regresiva próximo episodio de GoT\n";
+    $help .= "/fenite - <add frase|add regex> Agregar frases o regex [Admins]\n";
+    $help .= "/cuando - <frase> Agregar como respuesta cuando digan la frase [Admins]\n";
+
+    $help =~ s/\///g if($cmd eq "plain");
+    
     $self->sendMessage([
         chat_id => $msg->{chat}{id},
         text => $help
