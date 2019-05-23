@@ -195,7 +195,9 @@ sub _process {
 
     # Commandos en plugins
     if($msg->{text} =~ /^\//) {
-        $msg->{text} =~ s/^\/(.*)\@.+\s(.*)$/\/$1 $2/;
+        $msg->{text} =~ s/^\/(.+)\@.+\s(.+)$/\/$1 $2/ if($msg->{text} =~ /^\/.+\@.+\s.+$/);
+        $msg->{text} =~ s/^\/(.+)\@.+$/\/$1/ if($msg->{text} =~ /^\/.+\@.+$/);
+        
         threads->create(sub{$bot->process($msg);})->detach();
         return;
     }else{
