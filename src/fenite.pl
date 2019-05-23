@@ -118,7 +118,12 @@ sub _process {
             my $text = $tme . " me entro en el grupo *" . $msg->{chat}{title} . "*";
             _msg($ownchat, $text);
 
-            $text = "Hola grupo, el mmg de " . $tme . " me invito!!";
+            $bot->sendSticker([
+                chat_id => $msg->{chat}{id},
+                sticker => "CAADAQADCAsAAr2S2wAB1cQrfZMDc8kC"
+            ]);
+
+            $text = "El mmg de " . $tme . " me invito!!";
             _msg($msg->{chat}{id}, $text);
         }else{
             my $nme = "[" . encode("utf8", $msg->{new_chat_member}{first_name}) . "](tg://user?id=" . $msg->{new_chat_member}{id} . ")";
