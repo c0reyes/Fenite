@@ -10,9 +10,10 @@ sub {
     $help .= "/got - Cuenta regresiva próximo episodio de GoT\n";
     $help .= "/fenite - <add frase|add regex> Agregar frases o regex [Admins]\n";
     $help .= "/cuando - <frase> Agregar como respuesta cuando digan la frase [Admins]\n";
+    $help .= "/fwd - Sugerencias para frases, utilizar dando replay al mensaje\n";
 
     $help =~ s/\///g if($cmd eq "plain");
-    
+
     $self->sendMessage([
         chat_id => $msg->{chat}{id},
         text => $help
