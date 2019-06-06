@@ -32,7 +32,7 @@ sub {
 		            }
                     push(@param, "photo");
                 }elsif($msg->{reply_to_message}{voice}){
-                    push(@param, $msg->{reply_to_message}{voice}{file_id}); 
+                    push(@param, $msg->{reply_to_message}{voice}{file_id});
                     push(@param, "voice");
                 }elsif($msg->{reply_to_message}{sticker}){
                     push(@param, $msg->{reply_to_message}{sticker}{file_id});
@@ -45,10 +45,10 @@ sub {
                     push(@param, "video");
                 }else{
                     push(@param, $msg->{reply_to_message}{text});
-                    push(@param, "message");    
+                    push(@param, "message");
                 }
 
-                insert("insert into fenite_rep (key,frase, type) values (?,?,?)", @param);
+                insert("insert or ignore into fenite_rep (key,frase, type) values (?,?,?)", @param);
 
                 $self->sendMessage([
                     chat_id => $msg->{chat}{id},
