@@ -1,0 +1,40 @@
+sub {
+    use Fenite qw(query update insert isOperator);
+    use IO::Socket::UNIX;
+
+    my $SOCK_PATH = "$ENV{HOME}/fenite.sock";
+
+    my $socket = IO::Socket::UNIX->new(
+        Type => SOCK_STREAM(),
+        Peer => $SOCK_PATH,
+    );
+
+    my ($self, $msg) = @_;
+    my $m = "Como que te falta algo!";
+
+    if(isOperator($msg->{from}{id})) {
+        if($msg->{reply_to_message}) {
+            my @param = ();
+
+            if($msg->{text}) {
+                push(@param, $msg->{reply_to_message}{from}{id});
+                push(@param, $msg->{text});
+                insert("insert into fenite_firstname (id, firstname) values (?,?)", @param);
+                $m = "Agregado";
+            }else{
+                push(@param, $msg->{reply_to_message}{from}{id});
+                insert("delete from fenite_firstname where id = ?", @param);
+                $m = "Eliminado";
+            }
+
+            print $socket "reload\n";
+        }
+    }else{
+        $m = "Sin power no hay paraiso";
+    }
+
+    $self->sendMessage([
+        chat_id => $msg->{chat}{id},
+        text => $m
+    ]);
+}

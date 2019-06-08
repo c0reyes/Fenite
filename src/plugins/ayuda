@@ -11,6 +11,7 @@ sub {
     $help .= "/fenite - <add frase|add regex> Agregar frases o regex [Admins]\n";
     $help .= "/cuando - <frase> Agregar como respuesta cuando digan la frase [Admins]\n";
     $help .= "/fwd - Sugerencias para frases, utilizar dando replay al mensaje\n";
+    $help .= "/name - <nombre> Agregar o eliminar nombres\n";
 
     $help =~ s/\///g if($cmd eq "plain");
 

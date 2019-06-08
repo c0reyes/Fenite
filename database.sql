@@ -37,3 +37,10 @@ alter table fenite_op add type varchar(2);
 create unique index idx_fenite_frases on fenite_frases (frase, type);
 create unique index idx_fenite_regex on fenite_regex (regex);
 create unique index idx_fenite_rep on fenite_rep (key);
+
+create table fenite_firstname (
+	id varchar(100),
+	firstname varchar(100)
+);
+
+create unique index idx_fenite_firstname on fenite_firstname (id);

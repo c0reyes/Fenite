@@ -25,10 +25,12 @@ my @mm = ();
 my @r = ();
 my $regex = "";
 my %resp = ();
+my %firstname = ();
 
 share(@mmgs);
 share($regex);
 share(%resp);
+share(%firstname);
 
 # Bot
 my $bot = new Telegram::Bot;
@@ -50,8 +52,8 @@ if(!$bot->{config}{log}{state}) {
 
 sub _reload {
     my $SOCK_PATH = "$ENV{HOME}/fenite.sock";
-    
-    if(-e $SOCK_PATH) { 
+
+    if(-e $SOCK_PATH) {
 	    unlink($SOCK_PATH);
     }
 
@@ -71,7 +73,7 @@ sub _reload {
 }
 
 sub _load {
-    # MMGs 
+    # MMGs
     undef @mmgs;
     @mmgs = ();
     @mmgs = query("select frase, type from fenite_frases order by random()");
@@ -93,6 +95,16 @@ sub _load {
         my @t = split(/\|/, $tmp);
         $resp{$t[0]} = "$t[1]|$t[2]";
     }
+
+    # first_name
+    my @firstname = query("select id, firstname from fenite_firstname");
+    undef %firstname;
+    %firstname = ();
+
+    foreach my $tmp (@firstname) {
+        my @t = split(/\|/, $tmp);
+        $firstname{$t[0]} = $t[1];
+    }
 }
 
 _load();
@@ -111,7 +123,7 @@ sub _process {
     my $username = $msg->{from}{username};
     my $firstname = $msg->{from}{first_name};
     my $id = $msg->{from}{id};
-    my $tme = "[" . encode("utf8", $firstname) . "](tg://user?id=" . $id. ")";
+    my $tme = "[" . ($firstname{$id} ? $firstname{$id} : encode("utf8", $firstname)) . "](tg://user?id=" . $id. ")";
 
     if($msg->{new_chat_member}) {
         if($msg->{new_chat_member}{username} eq $codename) {
@@ -126,7 +138,7 @@ sub _process {
             $text = "El mmg de " . $tme . " me invito!!";
             _msg($msg->{chat}{id}, $text);
         }else{
-            my $nme = "[" . encode("utf8", $msg->{new_chat_member}{first_name}) . "](tg://user?id=" . $msg->{new_chat_member}{id} . ")";
+            my $nme = "[" .  ($firstname{$msg->{new_chat_member}{id}} ? $firstname{$msg->{new_chat_member}{id}} : encode("utf8", $msg->{new_chat_member}{first_name})) . "](tg://user?id=" . $msg->{new_chat_member}{id} . ")";
             my $text = $nme . " klk";
 
             _msg($msg->{chat}{id}, $text);
@@ -159,9 +171,9 @@ sub _process {
         $username_reply = $msg->{reply_to_message}{from}{username};
         $firstname_reply = $msg->{reply_to_message}{from}{first_name};
         $id_reply = $msg->{reply_to_message}{from}{id};
-        $tme_reply = "[" . encode("utf8", $firstname_reply) . "](tg://user?id=" . $id_reply. ")";
+        $tme_reply = "[" . ($firstname{$id_reply} ? $firstname{$id_reply} : encode("utf8", $firstname_reply)) . "](tg://user?id=" . $id_reply. ")";
     }
-    
+
     my $text = $msg->{text};
     $text .= $msg->{caption};
     $text .= $msg->{reply_to_message}{text} if $text !~ /^\//;
@@ -183,7 +195,7 @@ sub _process {
     if($text =~ /di lo tuyo|Say your thing/i) {
         my $m = $mmgs[rand @mmgs];
         chomp($m);
-        
+
         if((!$firstname_reply && !$username_reply) || $username_reply eq $codename) {
             _send($msg, $m, $tme);
         }else{
@@ -197,7 +209,7 @@ sub _process {
     if($msg->{text} =~ /^\//) {
         $msg->{text} =~ s/^\/(.+)\@.+\s(.+)$/\/$1 $2/ if($msg->{text} =~ /^\/.+\@.+\s.+$/);
         $msg->{text} =~ s/^\/(.+)\@.+$/\/$1/ if($msg->{text} =~ /^\/.+\@.+$/);
-        
+
         threads->create(sub{$bot->process($msg);})->detach();
         return;
     }else{
@@ -298,7 +310,7 @@ sub _send {
 sub supergroup {
     my $from_chat_id = shift;
     my $to_chat_id = shift;
-    
+
     my $query = "update fenite_mmg set chatid = ? where chatid = ?";
     my @params = ($to_chat_id, $from_chat_id);
 
@@ -350,4 +362,3 @@ sub mmg {
 
     insert($qry, @param_qry);
 }
-
