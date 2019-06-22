@@ -16,13 +16,15 @@ sub {
         if($msg->{reply_to_message}) {
             my @param = ();
 
+            my $id = $msg->{reply_to_message}{forward_from}{id} ? $msg->{reply_to_message}{forward_from}{id} : $msg->{reply_to_message}{from}{id};
+
             if($msg->{text}) {
-                push(@param, $msg->{reply_to_message}{from}{id});
+                push(@param, $id);
                 push(@param, $msg->{text});
                 insert("insert into fenite_firstname (id, firstname) values (?,?)", @param);
                 $m = "Agregado";
             }else{
-                push(@param, $msg->{reply_to_message}{from}{id});
+                push(@param, $id);
                 insert("delete from fenite_firstname where id = ?", @param);
                 $m = "Eliminado";
             }
