@@ -4,18 +4,15 @@ sub {
     use LWP::Simple;
     use Encode qw(encode);
 
-    my @url = (
-        "http://images.intellicast.com/WxImages/Satellite/hicbsat.gif"
-        # "http://www.ssd.noaa.gov/goes/east/carb/avn-l.jpg"
-        # "http://www.ssd.noaa.gov/goes/east/carb/vis-l.jpg"
-    );
-
     my @gif = (
         "http://i.imgur.com/gdEegDs.gif",
         "http://bornsocio.com/demo/viralist/media/uploads/17/55dd5a3a761f9.gif",
         "http://bornsocio.com/demo/viralist/media/uploads/17/55dd5a563204c.gif",
         "http://bornsocio.com/demo/viralist/media/uploads/17/55dd5b2a49afa.gif",
-        "CgADBAADmwADVfw1UNQPSukEGxCZAg"
+        "CgADBAADmwADVfw1UNQPSukEGxCZAg",
+        "CgADBAADuwADqssFUXr0DuhjX0vZAg",
+        "CgADBAADuQAD_fUEUXgsLWJAlcv8Ag",
+        "CgADBAADLwEAAr-4BFEYSbDlDRKGawI"
     );
 
     my %WeatherEmoji = (
@@ -69,27 +66,12 @@ sub {
 	   animation => $gif[rand @gif]
     ]);
 
-    for(my $i = 0; $i < @url; $i++) {
-        my $u = $url[$i];
-        my @ff = split(/\//,$u);
-        my $file = $ff[-1];
- 
-        system("wget -q $u");
+    my $url = sprintf("http://images.intellicast.com/WxImages/Satellite/hicbsat.gif?%08X", rand(0xffffffff));
 
-        if( -f $file ) {
-            $self->sendPhoto([
-                chat_id => $msg->{chat}{id},
-                photo => [$file]
-            ]);
-
-            unlink($file);
-        }else{
-            $self->sendMessage([
-                    chat_id => $msg->{chat}{id},
-                    text => "Error al bajar el archivo"
-            ]);
-        }
-    }
+    $self->sendPhoto([
+            chat_id => $msg->{chat}{id},
+            photo => $url
+    ]);
 
     my $xml = "";
     my %result = "";
@@ -105,18 +87,17 @@ sub {
 
     foreach $item (@{$result{'item'}}) {
         if($item->{'title'}=~/Currently/) {
-            # $r .= "$item->{'description'}";
             @t = split(/:/, $item->{'title'});
         }
     }
 
     # Emoji
-    chomp($t[1]); 
+    chomp($t[1]);
     my $day = ($H > 5 && $H < 19) ? "day" : "night";
     my $a = $day . "_" . $t[1];
     $a =~ s/\ //;
     $t[1] =~ s/\ //;
-    my $emoji = $WeatherEmoji{$a} ? $WeatherEmoji{$a} : $WeatherEmoji{$t[1]}; 
+    my $emoji = $WeatherEmoji{$a} ? $WeatherEmoji{$a} : $WeatherEmoji{$t[1]};
 
     $self->sendMessage([
         chat_id => $msg->{chat}{id},
