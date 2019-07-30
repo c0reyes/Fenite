@@ -13,60 +13,57 @@ sub {
 
     # Agregar frase
     if($msg->{text} =~ /^add|^del/i && isOperator($msg->{from}{id})) {
-        if($msg->{reply_to_message}) {
-            my @param;
+        my @param;
+        if($msg->{reply_to_message} && $msg->{text} =~ /^add/) {
+            $msg->{text} =~ s/^add\s(.*)/$1/;
 
-            if($msg->{text} =~ /^add/) {
-                $msg->{text} =~ s/^add\s(.*)/$1/;
+            push(@param, $msg->{text});
 
-                push(@param, $msg->{text});
-
-                if($msg->{reply_to_message}{document}) {
-                    push(@param, $msg->{reply_to_message}{document}{file_id});
-                    push(@param, "document");
-                }elsif($msg->{reply_to_message}{photo}){
-		            if($msg->{reply_to_message}{photo}[2]) {
-                    	push(@param, $msg->{reply_to_message}{photo}[2]{file_id});
-		            }else{
-                    	push(@param, $msg->{reply_to_message}{photo}[1]{file_id});
-		            }
-                    push(@param, "photo");
-                }elsif($msg->{reply_to_message}{voice}){
-                    push(@param, $msg->{reply_to_message}{voice}{file_id});
-                    push(@param, "voice");
-                }elsif($msg->{reply_to_message}{sticker}){
-                    push(@param, $msg->{reply_to_message}{sticker}{file_id});
-                    push(@param, "sticker");
-                }elsif($msg->{reply_to_message}{audio}){
-                    push(@param, $msg->{reply_to_message}{audio}{file_id});
-                    push(@param, "audio");
-                }elsif($msg->{reply_to_message}{video}){
-                    push(@param, $msg->{reply_to_message}{video}{file_id});
-                    push(@param, "video");
-                }else{
-                    push(@param, $msg->{reply_to_message}{text});
-                    push(@param, "message");
-                }
-
-                insert("insert or ignore into fenite_rep (key,frase, type) values (?,?,?)", @param);
-
-                $self->sendMessage([
-                    chat_id => $msg->{chat}{id},
-                    text => "Agregado\n"
-                ]);
+            if($msg->{reply_to_message}{document}) {
+                push(@param, $msg->{reply_to_message}{document}{file_id});
+                push(@param, "document");
+            }elsif($msg->{reply_to_message}{photo}){
+		        if($msg->{reply_to_message}{photo}[2]) {
+                	push(@param, $msg->{reply_to_message}{photo}[2]{file_id});
+		        }else{
+                	push(@param, $msg->{reply_to_message}{photo}[1]{file_id});
+		        }
+                push(@param, "photo");
+            }elsif($msg->{reply_to_message}{voice}){
+                push(@param, $msg->{reply_to_message}{voice}{file_id});
+                push(@param, "voice");
+            }elsif($msg->{reply_to_message}{sticker}){
+                push(@param, $msg->{reply_to_message}{sticker}{file_id});
+                push(@param, "sticker");
+            }elsif($msg->{reply_to_message}{audio}){
+                push(@param, $msg->{reply_to_message}{audio}{file_id});
+                push(@param, "audio");
+            }elsif($msg->{reply_to_message}{video}){
+                push(@param, $msg->{reply_to_message}{video}{file_id});
+                push(@param, "video");
             }else{
-                $msg->{text} =~ s/^del\s(.*)/$1/;
-                @param = ();
-                push(@param, $msg->{text});
-                insert("delete from fenite_rep where key = ?", @param);
-
-                $self->sendMessage([
-                    chat_id => $msg->{chat}{id},
-                    text => "Eliminado"
-                ]);
+                push(@param, $msg->{reply_to_message}{text});
+                push(@param, "message");
             }
 
-	        print $socket "reload\n";
+            insert("insert or ignore into fenite_rep (key,frase, type) values (?,?,?)", @param);
+
+            $self->sendMessage([
+                chat_id => $msg->{chat}{id},
+                text => "Agregado\n"
+            ]);
+        }elsif($msg->{text} =~ /^del\s.*/) {
+            $msg->{text} =~ s/^del\s(.*)/$1/;
+            @param = ();
+            push(@param, $msg->{text});
+            insert("delete from fenite_rep where key = ?", @param);
+
+            $self->sendMessage([
+                chat_id => $msg->{chat}{id},
+                text => "Eliminado"
+            ]);
         }
+
+        print $socket "reload\n";
     }
 }
