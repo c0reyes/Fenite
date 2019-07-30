@@ -1,18 +1,18 @@
  sub {
+    use Fenite qw(isOperator);
     use Data::Dumper;
 
     my ($self, $msg) = @_;
 
-    $self->sendMessage([
-        chat_id => $msg->{chat}{id},
-        text => Dumper($msg) . "\n"
-    ]);
-    #$self->sendDocument([
-    #        chat_id => $msg->{chat}{id},
-    #        document => "CgADAQADBwAD8wi5REZaaoe2yczzAg",
-    #    ]);
-    #$self->sendPhoto([
-    #    chat_id => $msg->{chat}{id},
-    #    photo => "AgADAQADtKcxG_MIuUQpwCPeRcOGScyY3i8ABEk3U4ncRQrmi9MBAAEC",
-    #    ]);
+    if(isOperator($msg->{from}{id})) {
+        $self->sendMessage([
+            chat_id => $msg->{chat}{id},
+            text => Dumper($msg) . "\n"
+        ]);
+    }else{
+        $self->sendMessage([
+            chat_id => $msg->{chat}{id},
+            text => "💩"
+        ]);
+    }
 }
