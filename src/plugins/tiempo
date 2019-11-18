@@ -5,7 +5,7 @@ sub {
     use Encode qw(encode);
 
     my @url = (
-        "https://eumetview.eumetsat.int/static-images/MSG/PRODUCTS/MPE/WESTERNEUROPE/",
+        "https://eumetview.eumetsat.int/static-images/MSG/PRODUCTS/H03B/WESTERNEUROPE/",
         "https://eumetview.eumetsat.int/static-images/MSG/RGB/NATURALCOLOR/WESTERNEUROPE/"
     );
 
