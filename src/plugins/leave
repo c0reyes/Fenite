@@ -1,0 +1,24 @@
+sub {
+   use Fenite qw(isOperator);
+
+   my ($self, $msg) = @_;
+   my $m = "💩";
+   my $chad_id = 0;
+
+   if(isOperator($msg->{from}{id})) {
+       $msg->{text} =~ s/^leave\s(.*)/$1/;
+       $chat_id = $msg->{reply_to_message}{text} ? $msg->{reply_to_message}{text} : $msg->{text};
+      
+       if($chat_id) {
+           $self->leaveChat([chat_id => $chat_id]);
+           $m = "ME FUI!!!";
+       }else{
+           $m = "Y el chat id?";
+       }
+   }
+
+   $self->sendMessage([
+       chat_id => $msg->{chat}{id},
+       text => $m
+   ]);
+}
