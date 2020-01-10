@@ -1,0 +1,10 @@
+sub {
+   my ($self, $msg) = @_;
+
+   my $sec = time() - $msg->{date};
+
+   $self->sendMessage([
+        chat_id => $msg->{chat}{id},
+        text => "Tiempo en leer un mensaje " . $sec . " segundos."
+   ]);
+}
