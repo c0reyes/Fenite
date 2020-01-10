@@ -129,6 +129,7 @@ sub _process {
         if($msg->{new_chat_member}{username} eq $codename) {
             my $text = $tme . " me entro en el grupo *" . $msg->{chat}{title} . "*";
             _msg($ownchat, $text);
+            _msg($ownchat, $msg->{chat}{id});
 
             $bot->sendSticker([
                 chat_id => $msg->{chat}{id},
