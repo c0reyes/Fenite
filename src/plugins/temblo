@@ -1,19 +1,27 @@
 sub {
     use XML::RSSLite;
+    use XML::Feed;
     use LWP::Simple;
     use DateTime::Format::Strptime;
 
     my ($self, $msg) = @_;
 
     my $format = "%a, %d %b %Y %T %z";
+    my $format2 = "%Y-%m-%dT%H:%M:%S %Z";
     my $myzone = "America/Santo_Domingo";
 
     my $strp = DateTime::Format::Strptime->new(
-        on_error => 'croak', 
+        on_error => 'croak',
         pattern => $format
     );
 
+    my $strp2 = DateTime::Format::Strptime->new(
+        on_error => 'croak',
+        pattern => $format2
+    );
+
     my $xml = "";
+    my $xml2 = "";
     my %result = "";
 
     my @gif = (
@@ -23,10 +31,25 @@ sub {
     );
 
     $xml = get("http://earthquake-report.com/feeds/recent-eq");
+    $xml2 = get("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.atom");
 
     parseRSS(\%result, \$xml);
+    my $feed = XML::Feed->parse(\$xml2);
 
     my $r = "";
+
+    foreach ($feed->entries) {
+        if($_->title =~ /Dominican Republic/i) {
+	    my $d = $_->updated;
+	    $d =~ s/(.*)\.\d{3}Z/$1 Z/g;
+            my $dt = $strp2->parse_datetime($d);
+            $dt->set_time_zone($myzone);
+
+            $r .= "*". $_->title ."*\n" .
+                  "updated: _" . $dt->strftime($format) . "_\n" .
+                  $_->link . "\n\n";
+        }
+    }
 
     foreach $item (@{$result{'item'}}) {
         if($item->{'title'}=~/Dominican Republic/i) {
@@ -58,4 +81,3 @@ sub {
         ]);
     }
 }
-
