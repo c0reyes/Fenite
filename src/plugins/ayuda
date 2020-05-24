@@ -9,7 +9,7 @@ sub {
     $help .= "/temblo - Temblores de tierra recientes en República Dominicana\n";
     $help .= "/got - Cuenta regresiva próximo episodio de GoT\n";
     $help .= "/fwd - Sugerencias para frases, utilizar dando replay al mensaje\n";
-    $help .= "/cuando - <add|dell> <frase> Agregar como respuesta cuando digan la frase [Admins]\n";
+    $help .= "/cuando - <add|del> <frase> Agregar como respuesta cuando digan la frase [Admins]\n";
     $help .= "/fenite - <add frase|add regex> Agregar frases o regex [Admins]\n";
     $help .= "/name - <nombre> Agregar o eliminar nombres [Admins]\n";
 
