@@ -12,11 +12,14 @@ sub {
     $help .= "/cuando - <add|del> <frase> Agregar como respuesta cuando digan la frase [Admins]\n";
     $help .= "/fenite - <add frase|add regex> Agregar frases o regex [Admins]\n";
     $help .= "/name - <nombre> Agregar o eliminar nombres [Admins]\n";
+    $help .= "/ayuda - Misma ayuda!\n";
+    $help .= "\nTambién puedes darle replay a mensajes con la frase *di lo tuyo*\n";
 
     $help =~ s/\///g if($cmd eq "plain");
 
     $self->sendMessage([
         chat_id => $msg->{chat}{id},
-        text => $help
+        text => $help,
+        parse_mode => 'Markdown'
     ]);
 }

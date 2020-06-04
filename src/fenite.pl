@@ -185,7 +185,13 @@ sub _process {
         my $m = $mmgs[rand @mmgs];
         chomp($m);
 
-        _send($msg, $m, $tme);
+        my $req = _send($msg, $m, $tme);
+
+        if($req->{ok} eq "false") {
+            open(O, ">>out.txt");
+            print O "$msg->{chat}{id} $req->{description}\n";
+            close(O);
+        }
 
         $username =~ s/\@|\s//g;
         mmg($msg->{chat}{id}, $username, $id, $firstname, $msg->{chat}{title});
@@ -205,6 +211,8 @@ sub _process {
 
         return;
     }
+
+    if($text =~ /boobs/i) { $msg->{text} = "/boobs"; }
 
     # Commandos en plugins
     if($msg->{text} =~ /^\//) {
@@ -244,42 +252,42 @@ sub _send {
 
     my @t = split(/\|/, $m);
     if($t[1] eq "document") {
-        $bot->sendDocument([
+        return $bot->sendDocument([
             chat_id => $msg->{chat}{id},
             document => $t[0],
             caption => $codename,
             parse_mode => 'Markdown'
         ]);
     }elsif($t[1] eq "photo") {
-        $bot->sendPhoto([
+        return $bot->sendPhoto([
             chat_id => $msg->{chat}{id},
             photo => $t[0],
             caption => $codename,
             parse_mode => 'Markdown'
         ]);
     }elsif($t[1] eq "voice") {
-        $bot->sendVoice([
+        return $bot->sendVoice([
             chat_id => $msg->{chat}{id},
             voice => $t[0],
             caption => $codename,
             parse_mode => 'Markdown'
         ]);
     }elsif($t[1] eq "audio") {
-        $bot->sendAudio([
+        return $bot->sendAudio([
             chat_id => $msg->{chat}{id},
             audio => $t[0],
             caption => $codename,
             parse_mode => 'Markdown'
         ]);
     }elsif($t[1] eq "video") {
-        $bot->sendVideo([
+        return $bot->sendVideo([
             chat_id => $msg->{chat}{id},
             video => $t[0],
             caption => $codename,
             parse_mode => 'Markdown'
         ]);
     }elsif($t[1] eq "animation") {
-        $bot->sendVideo([
+        return $bot->sendVideo([
             chat_id => $msg->{chat}{id},
             animation => $t[0],
             caption => $codename,
@@ -287,19 +295,19 @@ sub _send {
         ]);
     }elsif($t[1] eq "sticker") {
         if($codename) {
-            $bot->sendMessage([
+            return $bot->sendMessage([
                 chat_id => $msg->{chat}{id},
                 text => $codename,
                 parse_mode => 'Markdown'
             ]);
         }
-        $bot->sendSticker([
+        return $bot->sendSticker([
             chat_id => $msg->{chat}{id},
             sticker => $t[0]
         ]);
     }else{
         $m = $codename . " " . $t[0];
-        $bot->sendMessage([
+        return $bot->sendMessage([
             chat_id => $msg->{chat}{id},
             text => $m,
             parse_mode => 'Markdown',
