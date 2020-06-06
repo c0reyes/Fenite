@@ -189,8 +189,11 @@ sub _process {
 
         if($req->{ok} eq "false") {
             open(O, ">>out.txt");
-            print O "$msg->{chat}{id} $req->{description}\n";
+            print O "$msg->{chat}{title} $msg->{chat}{id} $req->{description}\n";
             close(O);
+
+            _msg($ownchat, "$msg->{chat}{title} $msg->{chat}{id} $req->{description}");
+            _msg($ownchat, $msg->{chat}{id});
         }
 
         $username =~ s/\@|\s//g;
