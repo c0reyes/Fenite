@@ -1,0 +1,26 @@
+sub {
+    use LWP::Simple;
+    use JSON;
+
+    my $reddit = get("https://www.reddit.com/r/Shitty_Car_Mods/.json");
+
+    my $json = JSON->new->utf8->decode($reddit);
+
+    my $children = $json->{data}->{children};
+    my @imgs;
+
+    for my $child (@$children) {
+        if($child->{data}->{url}) {
+            push @imgs, $child->{data}->{url}
+        }
+    }
+
+    my $url = $imgs[rand @imgs];
+
+    my ($self, $msg) = @_;
+
+    $self->sendPhoto([
+            chat_id => $msg->{chat}{id},
+            photo => $url
+    ]);
+}
