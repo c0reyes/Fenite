@@ -13,14 +13,9 @@ No es necesario hacer mucho para ponerlo a funcionar, hacer una copia local y ed
 ### Debian
 
 ```
-sudo apt-get install libyaml-perl
-sudo apt-get install libhttp-daemon-perl
-sudo apt-get install libforks-perl
-sudo apt-get install libclass-dbi-sqlite-perl
-sudo apt-get install libxml-rsslite-perl
-sudo apt-get install libdatetime-format-strptime-perl
+sudo apt-get install libyaml-perl libhttp-daemon-perl libforks-perl libclass-dbi-sqlite-perl libxml-rsslite-perl libdatetime-format-strptime-perl libjson-perl libwww-perl
 ```
 
-## Running 
+## Running
 
 ./fenite.pl

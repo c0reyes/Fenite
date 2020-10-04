@@ -187,7 +187,7 @@ sub _process {
 
         my $req = _send($msg, $m, $tme);
 
-        if($req->{ok} eq "false") {
+        if(!$req->{ok}) {
             open(O, ">>out.txt");
             print O "$msg->{chat}{title} $msg->{chat}{id} $req->{description}\n";
             close(O);
