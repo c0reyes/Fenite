@@ -12,6 +12,8 @@ sub {
     for my $child (@$children) {
         if($child->{data}->{url}) {
             push @imgs, $child->{data}->{url}
+        }elsif($child->{data}->{url_overridden_by_dest}) {
+            push @imgs, $child->{data}->{url_overridden_by_dest}
         }
     }
 
