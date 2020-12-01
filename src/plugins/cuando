@@ -19,6 +19,14 @@ sub {
 
             push(@param, $msg->{text});
 
+            if(query("select * from fenite_rep where key = ?", @param) > 0) {
+                $self->sendMessage([
+                    chat_id => $msg->{chat}{id},
+                    text => "Frase repetida\n"
+                ]);
+                return;
+            }
+
             if($msg->{reply_to_message}{document}) {
                 push(@param, $msg->{reply_to_message}{document}{file_id});
                 push(@param, "document");

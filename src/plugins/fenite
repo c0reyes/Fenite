@@ -44,6 +44,14 @@ sub {
 
             if($msg->{text} =~ /add regex/) {
                 ## Add regex
+                if(query("select * from fenite_regex where regex = ?", @param) > 0) {
+                    $self->sendMessage([
+                        chat_id => $msg->{chat}{id},
+                        text => "Regex repetido\n"
+                    ]);
+                    return;
+                }
+
                 insert("insert or ignore into fenite_regex (regex) values (?)", @param);
                 $m = "Regex agregado\n";
             }elsif($msg->{text} =~ /del regex/) {
@@ -52,6 +60,14 @@ sub {
                 $m = "Regex eliminado\n";
             }elsif($msg->{text} =~ /add frase/) {
                 ## Add frase
+                if(query("select * from fenite_frases where frase = ? and type = ?", @param) > 0) {
+                    $self->sendMessage([
+                        chat_id => $msg->{chat}{id},
+                        text => "Frase repetida\n"
+                    ]);
+                    return;
+                }
+
                 insert("insert or ignore into fenite_frases (frase, type) values (?,?)", @param);
                 $m = "Frase agregada\n";
             }elsif($msg->{text} =~ /del frase/) {
