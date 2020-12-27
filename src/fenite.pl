@@ -26,11 +26,14 @@ my @r = ();
 my $regex = "";
 my %resp = ();
 my %firstname = ();
+my %cooldown = ();
+my $count = 60;
 
 share(@mmgs);
 share($regex);
 share(%resp);
 share(%firstname);
+share(%cooldown);
 
 # Bot
 my $bot = new Telegram::Bot;
@@ -215,8 +218,6 @@ sub _process {
         return;
     }
 
-    if($text =~ /boobs/i) { $msg->{text} = "/boobs"; }
-
     # Commandos en plugins
     if($msg->{text} =~ /^\//) {
         $msg->{text} =~ s/^\/(.+)\@.+\s(.+)$/\/$1 $2/ if($msg->{text} =~ /^\/.+\@.+\s.+$/);
@@ -226,10 +227,13 @@ sub _process {
         return;
     }else{
         # Responder texto
-        foreach my $key (keys %resp) {
-            if($msg->{text} =~ /$key[\s\n\r?!\.]|$key$/i) {
-                _send($msg, $resp{$key});
-                last;
+        if(time() - $cooldown{$msg->{id}} > $count) {
+            foreach my $key (keys %resp) {
+                if($msg->{text} =~ /$key[\s\n\r?!\.]|$key$/i) {
+                    _send($msg, $resp{$key});
+                    $cooldown{$msg->{id}} = time() + (rand(3) * rand(60));
+                    last;
+                }
             }
         }
     }
