@@ -227,11 +227,11 @@ sub _process {
         return;
     }else{
         # Responder texto
-        if(time() - $cooldown{$msg->{id}} > $count) {
+        if(time() - $cooldown{$msg->{chat}{id}} > $count) {
             foreach my $key (keys %resp) {
                 if($msg->{text} =~ /$key[\s\n\r?!\.]|$key$/i) {
                     _send($msg, $resp{$key});
-                    $cooldown{$msg->{id}} = time() + (rand(3) * rand(60));
+                    $cooldown{$msg->{chat}{id}} = time() + (rand(3) * rand(60));
                     last;
                 }
             }
