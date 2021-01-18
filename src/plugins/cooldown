@@ -1,0 +1,45 @@
+sub {
+   use Fenite qw(query update insert);
+   use IO::Socket::UNIX;
+
+   my $SOCK_PATH = "$ENV{HOME}/fenite.sock";
+
+   my $socket = IO::Socket::UNIX->new(
+       Type => SOCK_STREAM(),
+       Peer => $SOCK_PATH,
+   );
+
+   my ($self, $msg) = @_;
+
+   my $response = $self->getChatMember([
+       chat_id => $msg->{chat}{id},
+       user_id => $msg->{from}{id}
+   ]);
+
+   if($response->{result}{status} ne "member") {
+       my $m = "/cooldown on|off";
+
+       my @param;
+       push(@param, $msg->{chat}{id});
+
+       if($msg->{text} =~ /on/) {
+          $m = "cooldown on";
+          insert("delete from fenite_cooldown where chatid = ?", @param);
+          print $socket "reload\n";
+       }elsif($msg->{text} =~ /off/) {
+          $m = "cooldown off";
+          insert("insert or ignore into fenite_cooldown (chatid) values (?)", @param);
+          print $socket "reload\n";
+       }
+
+       $self->sendMessage([
+           chat_id => $msg->{chat}{id},
+           text => $m
+       ]);
+   }else{
+       $self->sendMessage([
+           chat_id => $msg->{chat}{id},
+           text => "💩"
+       ]);
+   }
+}

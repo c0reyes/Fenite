@@ -1,0 +1,25 @@
+sub {
+   use Fenite qw(isOperator);
+   use Data::Dumper;
+
+   my ($self, $msg) = @_;
+
+   if(isOperator($msg->{from}{id})) {
+       my $userid = $msg->{reply_to_message}{from}{id} ? $msg->{reply_to_message}{from}{id} : $msg->{from}{id};
+
+       my $response = $self->getChatMember([
+           chat_id => $msg->{chat}{id},
+           user_id => $userid
+       ]);
+
+       $self->sendMessage([
+           chat_id => $msg->{chat}{id},
+           text => Dumper($response) . "\n"
+       ]);
+   }else{
+       $self->sendMessage([
+           chat_id => $msg->{chat}{id},
+           text => "💩"
+       ]);
+   }
+}

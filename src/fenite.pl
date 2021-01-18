@@ -27,6 +27,7 @@ my $regex = "";
 my %resp = ();
 my %firstname = ();
 my %cooldown = ();
+my @cooloff = ();
 my $count = 60;
 
 share(@mmgs);
@@ -34,6 +35,7 @@ share($regex);
 share(%resp);
 share(%firstname);
 share(%cooldown);
+share(@cooloff);
 
 # Bot
 my $bot = new Telegram::Bot;
@@ -108,6 +110,10 @@ sub _load {
         my @t = split(/\|/, $tmp);
         $firstname{$t[0]} = $t[1];
     }
+
+    # @cooloff
+    undef @cooloff;
+    @cooloff = query("select chatid from fenite_cooldown");
 }
 
 _load();
@@ -227,7 +233,7 @@ sub _process {
         return;
     }else{
         # Responder texto
-        if(time() - $cooldown{$msg->{chat}{id}} > $count) {
+        if(time() - $cooldown{$msg->{chat}{id}} > $count || grep(/^$msg->{chat}{id}$/, @cooloff)) {
             foreach my $key (keys %resp) {
                 if($msg->{text} =~ /$key[\s\n\r?!\.]|$key$/i) {
                     _send($msg, $resp{$key});
