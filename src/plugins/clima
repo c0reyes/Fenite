@@ -66,7 +66,7 @@ sub {
 	   animation => $gif[rand @gif]
     ]);
 
-    my $url = sprintf("http://images.intellicast.com/WxImages/Satellite/hicbsat.gif?%08X", rand(0xffffffff));
+    my $url = sprintf("https://s.w-x.co/staticmaps/caribsat_1280x720.jpg?%08X", rand(0xffffffff));
 
     $self->sendPhoto([
             chat_id => $msg->{chat}{id},
