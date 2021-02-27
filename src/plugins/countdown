@@ -1,0 +1,85 @@
+sub {
+    use LWP::UserAgent;
+    use Time::Local;
+    use POSIX qw(strftime);
+    use strict;
+
+    my ($self, $msg) = @_;
+
+    if(!$msg->{text}) {
+        $self->sendMessage([
+            chat_id => $msg->{chat}{id},
+            text => "💩",
+            parse_mode => 'Markdown',
+            disable_web_page_preview => 'true'
+        ]);
+        return;
+    }
+
+    my $ua = LWP::UserAgent->new(timeout => 10, agent => "Mozilla/5.0 (Android 4.4; Mobile; rv:41.0) Gecko/41.0 Firefox/41.0");
+
+    my $url_base = "https://yourcountdown.to";
+    my $url = sprintf("%s/everything?search=%s&approved=1&tags=&tag_match_type=any&confirmed_status=any&order=most_popular", $url_base, $msg->{text});
+
+    my $response = $ua->get($url);
+
+    if ($response->is_success) {
+        my @body = split(/\n/, $response->decoded_content);
+        my $img;
+        my $r;
+        my $count = 0;
+
+        for(my $i; $i < @body; $i++) {
+            if($body[$i] =~ /.*span.*category/) {
+                $body[$i] =~ s/.*\>(.*)\<.*/$1/;
+                $r = sprintf("*Category:* %s\n", $body[$i]);
+            }
+
+            if($body[$i] =~ /.*h4.*\"title\"/) {
+                $body[$i] =~ s/.*\>(.*)\<.*/$1/;
+                $r .= sprintf("*Name:* %s\n", $body[$i]);
+            }
+
+            if($body[$i] =~ /.*p.*subtitle/) {
+                $body[$i] =~ s/.*\>(.*)\<.*/$1/;
+                $r .= sprintf("*Title:* %s\n", $body[$i]);
+            }
+
+            if($body[$i] =~ /countdown-block/) {
+                $body[$i] =~ s/.*data-src\="(.*)"\sclass.*/$1/;
+                $img = sprintf("%s%s", $url_base, $body[$i]);
+            }
+
+            if($body[$i] =~ /data-timezone/) {
+                my $timezone = $body[$i];
+                $timezone =~ s/.*data-timezone\="(.*)"\>\<.*/$1/;
+                $body[$i] =~ s/.*data-date\="(.*)"\sdata-completion.*/$1/;
+
+                my ($yyyy, $MM, $dd, $hh, $mm, $ss) = ($body[$i] =~ /(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})/);
+                my $epoch_seconds = timegm($ss, $mm, $hh, $dd, $MM-1, $yyyy);
+                my $delta = (60*60) * int($timezone);
+
+                my $future = $epoch_seconds - $delta;
+                my $curtime = time();
+                if( $future > $curtime ) {
+                    $r .= sprintf("%02d D : %02d H : %02d M : %02d S\n",
+                         ($future-$curtime)/(60*60*24),
+                        (($future-$curtime)%(60*60*24))/(60*60),
+                        ($future-$curtime)/60 % 60,
+                        ($future-$curtime)%60
+                    );
+                }else{ $r .= "Falta mucho mmg"; }
+
+                $self->sendPhoto([
+                        chat_id => $msg->{chat}{id},
+                        photo => $img,
+                        caption => $r,
+                        parse_mode => "Markdown"
+                ]);
+
+                if($count == 2) { return; }
+                $count++;
+            }
+        }
+    }
+}
