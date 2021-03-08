@@ -233,9 +233,9 @@ sub _process {
         return;
     }else{
         # Responder texto
-        if(time() - $cooldown{$msg->{chat}{id}} > $count || grep(/^$msg->{chat}{id}$/, @cooloff)) {
+        if(time() - $cooldown{$msg->{chat}{id}} > $count || grep(/^$msg->{chat}{id}$/, @cooloff) || $msg->{chat}{type} eq "private") {
             foreach my $key (keys %resp) {
-                if($msg->{text} =~ /$key[\s\n\r?!\.]|$key$/i) {
+                if($msg->{text} =~ /\b$key\b/i) {
                     _send($msg, $resp{$key});
                     $cooldown{$msg->{chat}{id}} = time() + (rand(3) * rand(60));
                     last;
