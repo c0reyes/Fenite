@@ -31,6 +31,8 @@ sub {
         my $count = 0;
 
         for(my $i; $i < @body; $i++) {
+            $body[$i] =~ s/[^[:ascii:]]//g;
+
             if($body[$i] =~ /.*span.*category/) {
                 $body[$i] =~ s/.*\>(.*)\<.*/$1/;
                 $r = sprintf("*Category:* %s\n", $body[$i]);
@@ -69,12 +71,12 @@ sub {
                         ($future-$curtime)/60 % 60,
                         ($future-$curtime)%60
                     );
-                }else{ $r .= "Falta mucho mmg"; }
+                }else{ $r .= "Ponte a verlo antes de que den spoilers!!!"; }
 
                 $self->sendPhoto([
                         chat_id => $msg->{chat}{id},
                         photo => $img,
-                        caption => $r,
+                        caption => "$r",
                         parse_mode => "Markdown"
                 ]);
 
