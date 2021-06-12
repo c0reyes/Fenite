@@ -2,8 +2,8 @@ sub {
     use Reddit qw(reddit);
 
     my ($self, $msg) = @_;
-    
-    my $url = "https://www.reddit.com/r/Shitty_Car_Mods/.json";
+
+    my $url = "https://www.reddit.com/r/cat/.json";
 
     reddit($self, $msg, $url);
 }
