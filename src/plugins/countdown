@@ -84,5 +84,14 @@ sub {
                 $count++;
             }
         }
+
+        if($count == 0) {
+            $self->sendMessage([
+                chat_id => $msg->{chat}{id},
+                text => "Ni 💩 se encontro!!",
+                parse_mode => 'Markdown',
+                disable_web_page_preview => 'true'
+            ]);
+        }
     }
 }
