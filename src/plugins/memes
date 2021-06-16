@@ -1,0 +1,9 @@
+sub {
+    use Reddit qw(reddit);
+
+    my ($self, $msg) = @_;
+
+    my $url = "https://www.reddit.com/r/memes/.json";
+
+    reddit($self, $msg, $url);
+}
