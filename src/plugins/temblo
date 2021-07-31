@@ -63,10 +63,10 @@ sub {
     }
 
     if($r) {
-        $self->sendAnimation([
-            chat_id => $msg->{chat}{id},
-            animation => $gif[rand @gif]
-        ]);
+        # $self->sendAnimation([
+        #    chat_id => $msg->{chat}{id},
+        #    animation => $gif[rand @gif]
+        # ]);
 
         $self->sendMessage([
             chat_id => $msg->{chat}{id},

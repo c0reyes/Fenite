@@ -13,6 +13,13 @@ sub {
             parse_mode => 'Markdown',
             disable_web_page_preview => 'true'
         ]);
+
+        $self->sendMessage([
+            chat_id => $msg->{chat}{id},
+            text => "use: /countdown <serie|pelicula>",
+            parse_mode => 'Markdown',
+            disable_web_page_preview => 'true'
+        ]);
         return;
     }
 

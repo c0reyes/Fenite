@@ -4,67 +4,7 @@ sub {
     use LWP::Simple;
     use Encode qw(encode);
 
-    my @gif = (
-        "http://i.imgur.com/gdEegDs.gif",
-        "http://bornsocio.com/demo/viralist/media/uploads/17/55dd5a3a761f9.gif",
-        "http://bornsocio.com/demo/viralist/media/uploads/17/55dd5a563204c.gif",
-        "http://bornsocio.com/demo/viralist/media/uploads/17/55dd5b2a49afa.gif",
-        "CgADBAADmwADVfw1UNQPSukEGxCZAg",
-        "CgADBAADuwADqssFUXr0DuhjX0vZAg",
-        "CgADBAADuQAD_fUEUXgsLWJAlcv8Ag",
-        "CgADBAADLwEAAr-4BFEYSbDlDRKGawI"
-    );
-
-    my %WeatherEmoji = (
-        "day_Sunny" => encode("UTF-8",pack("U",0x2600)),
-        "day_Mostly Sunny" => encode("UTF-8",pack("U",0x2600)),
-        "day_Partly Sunny" => encode("UTF-8",pack("U",0x2600)),
-        "day_Intermittent Clouds" => encode("UTF-8",pack("U",0x2600)),
-        "day_Hazy Sunshine" => encode("UTF-8",pack("U",0x2600)),
-        "day_Mostly Cloudy" => encode("UTF-8",pack("U",0x26C5)),
-        "Cloudy" => encode("UTF-8",pack("U",0x2601)),
-        "Dreary (Overcast)" => encode("UTF-8",pack("U",0x2601)),
-        "Fog" => encode("UTF-8",pack("U",0x1F32B)),
-        "Showers" => encode("UTF-8",pack("U",0x1F327)),
-        "day_Mostly Cloudy W/ Showers" => encode("UTF-8",pack("U",0x1F326)),
-        "day_Partly Sunny W/ Showers" => encode("UTF-8",pack("U",0x1F326)),
-        "T-Storms" => encode("UTF-8",pack("U",0x26C8)),
-        "Thunderstorms" => encode("UTF-8",pack("U",0x26C8)),
-        "day_Mostly Cloudy W/ T-Storms" => encode("UTF-8",pack("U",0x26C8)),
-        "day_Partly Sunny W/ T-Storms" => encode("UTF-8",pack("U",0x26C8)),
-        "Rain" => encode("UTF-8",pack("U",0x1F327)),
-        "Flurries" => "",
-        "day_Mostly Cloudy W/ Flurries" => encode("UTF-8",pack("U",0x26C5)),
-        "day_Partly Sunny W/ Flurries" => encode("UTF-8",pack("U",0x26C5)),
-        "Snow" => encode("UTF-8",pack("U",0x1F328)),
-        "day_Mostly Cloudy W/ Snow" => encode("UTF-8",pack("U",0x1F328)),
-        "Ice" => "",
-        "Sleet" => "",
-        "Freezing Rain" => "",
-        "Rain and Snow" => "",
-        "Hot" => "",
-        "Cold" => "",
-        "night_Windy" => encode("UTF-8",pack("U",0x1F32C)),
-        "night_Clear" => encode("UTF-8",pack("U",0x1F316)),
-        "night_Mostly Clear" => encode("UTF-8",pack("U",0x1F316)),
-        "night_Partly Cloudy" => encode("UTF-8",pack("U",0x1F316)),
-        "night_Intermittent Clouds" => encode("UTF-8",pack("U",0x1F316)),
-        "night_Hazy Moonlight" => encode("UTF-8",pack("U",0x1F316)),
-        "night_Mostly Cloudy" => "",
-        "night_Partly Cloudy W/ Showers" => encode("UTF-8",pack("U",0x1F326)),
-        "night_Mostly Cloudy W/ Showers" => encode("UTF-8",pack("U",0x1F326)),
-        "night_Partly Cloudy W/ T-Storms" => encode("UTF-8",pack("U",0x26C8)),
-        "night_Mostly Cloudy W/ T-Storms" => encode("UTF-8",pack("U",0x26C8)),
-        "night_Mostly Cloudy W/ Flurries" => "",
-        "night_Mostly Cloudy W/ Snow" => ""
-    );
-
     my ($self, $msg) = @_;
-
-    $self->sendAnimation([
-	   chat_id => $msg->{chat}{id},
-	   animation => $gif[rand @gif]
-    ]);
 
     my $url = sprintf("https://s.w-x.co/staticmaps/caribsat_1280x720.jpg?%08X", rand(0xffffffff));
 
@@ -73,34 +13,10 @@ sub {
             photo => $url
     ]);
 
-    my $xml = "";
-    my %result = "";
-
-    $xml = get("http://rss.accuweather.com/rss/liveweather_rss.asp?metric=1&locCode=CAC|DO|DR005|SANTO%20DOMINGO");
-
-    parseRSS(\%result, \$xml);
-
-    my $r = "";
-    my @t = "";
-
-    my $H = strftime '%H', localtime(time);
-
-    foreach $item (@{$result{'item'}}) {
-        if($item->{'title'}=~/Currently/) {
-            @t = split(/:/, $item->{'title'});
-        }
-    }
-
-    # Emoji
-    chomp($t[1]);
-    my $day = ($H > 5 && $H < 19) ? "day" : "night";
-    my $a = $day . "_" . $t[1];
-    $a =~ s/\ //;
-    $t[1] =~ s/\ //;
-    my $emoji = $WeatherEmoji{$a} ? $WeatherEmoji{$a} : $WeatherEmoji{$t[1]};
-
+    my $t = get("https://wttr.in/Santo%20Domingo?format=4&m");
     $self->sendMessage([
         chat_id => $msg->{chat}{id},
-        text => "$emoji $t[1]\nTemp: $t[2]"
+        text => encode("utf8", $t),
+        parse_mode => 'Markdown'
     ]);
 }

@@ -26,4 +26,11 @@ sub {
             photo => $img
         ]);
     }
+
+    my $t = get("https://wttr.in/Salamanca?format=4&m");
+    $self->sendMessage([
+        chat_id => $msg->{chat}{id},
+        text => encode("utf8", $t),
+        parse_mode => 'Markdown'
+    ]);
 }
