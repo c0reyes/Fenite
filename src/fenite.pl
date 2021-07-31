@@ -28,7 +28,7 @@ my %resp = ();
 my %firstname = ();
 my %cooldown = ();
 my @cooloff = ();
-my $count = 60;
+my $count = 180;
 
 share(@mmgs);
 share($regex);
