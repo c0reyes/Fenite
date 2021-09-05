@@ -27,7 +27,7 @@ sub {
         ]);
     }
 
-    my $t = get("https://wttr.in/Salamanca?format=4&m");
+    my $t = get("https://wttr.in/Valladolid?format=4&m");
     $self->sendMessage([
         chat_id => $msg->{chat}{id},
         text => encode("utf8", $t),
