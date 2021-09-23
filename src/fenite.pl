@@ -5,11 +5,14 @@ use threads;
 use Telegram::Bot;
 use HTTP::Daemon;
 use POSIX qw(strftime);
-use Encode qw(encode);
+use Encode qw(encode decode);
 use Data::Dumper;
 use JSON;
 use LWP::Simple;
 use IO::Socket::UNIX;
+
+use utf8;
+use Unicode::Normalize;
 
 use forks;
 use forks::shared deadlock => {detect=> 1, resolve => 1};
@@ -232,6 +235,9 @@ sub _process {
         threads->create(sub{$bot->process($msg);})->detach();
         return;
     }else{
+        $msg->{text} = NFKD(decode("UTF-8", $msg->{text}));
+        $msg->{text} =~ s/\p{NonspacingMark}//g;
+
         # Responder texto
         if(time() - $cooldown{$msg->{chat}{id}} > $count || grep(/^$msg->{chat}{id}$/, @cooloff) || $msg->{chat}{type} eq "private") {
             foreach my $key (keys %resp) {
