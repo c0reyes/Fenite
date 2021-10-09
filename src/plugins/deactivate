@@ -1,6 +1,9 @@
 sub {
    use Fenite qw(query update insert);
    use IO::Socket::UNIX;
+   use POSIX qw(strftime);
+
+   $current_time = strftime "%H%M", localtime;
 
    my $SOCK_PATH = "$ENV{HOME}/fenite.sock";
 
@@ -17,17 +20,26 @@ sub {
    ]);
 
    if($response->{result}{status} ne "member") {
-       my $m = "/cooldown on|off";
+       my $m = "/deactivate on|off <start> <end>";
 
        my @param;
        push(@param, $msg->{chat}{id});
 
        if($msg->{text} =~ /on/) {
-          $m = "cooldown on";
-          insert("delete from fenite_cooldown where chatid = ?", @param);
+          @times = $msg->{text} =~ /\w+\s(\d+)\s(\d+)/;
+
+          if($times[0] < 0 || $times[1] > 2400 || $times[0] > $times[1]) {
+            $m = "START > 0 and END < 2400 and START < END";
+          }else {
+            $m = "deactivate on $times[0] $times[1]";
+            push(@param, $times[0]);
+            push(@param, $times[1]);
+            insert("delete from fenite_active where chatid = ?", @param);
+            insert("insert or ignore into fenite_active (chatid, start, end) values (?,?,?)", @param);
+          }
        }elsif($msg->{text} =~ /off/) {
-          $m = "cooldown off";
-          insert("insert or ignore into fenite_cooldown (chatid) values (?)", @param);
+          $m = "deactivate off";
+          insert("delete from fenite_active where chatid = ?", @param);
        }
 
        $self->sendMessage([

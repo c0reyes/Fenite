@@ -30,6 +30,7 @@ my $regex = "";
 my %resp = ();
 my %firstname = ();
 my %cooldown = ();
+my %active = ();
 my @cooloff = ();
 my $count = 180;
 
@@ -38,6 +39,7 @@ share($regex);
 share(%resp);
 share(%firstname);
 share(%cooldown);
+share(%active);
 share(@cooloff);
 
 # Bot
@@ -117,6 +119,15 @@ sub _load {
     # @cooloff
     undef @cooloff;
     @cooloff = query("select chatid from fenite_cooldown");
+
+    # active
+    undef %active;
+    my @act = query("select chatid, start, end from fenite_active");
+
+    foreach my $tmp(@act) {
+        my @t = split(/\|/, $tmp);
+        $active{$t[0]} = "$t[1]|$t[2]";
+    }
 }
 
 _load();
@@ -235,6 +246,12 @@ sub _process {
         threads->create(sub{$bot->process($msg);})->detach();
         return;
     }else{
+        my $current_hour = strftime "%H%M", localtime;
+        my @t = split(/\|/, $active{$msg->{chat}{id}});
+        if($t[0] < $current_hour && $current_hour < $t[1]) {
+            return;
+        }
+
         $msg->{text} = NFKD(decode("UTF-8", $msg->{text}));
         $msg->{text} =~ s/\p{NonspacingMark}//g;
 

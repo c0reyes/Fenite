@@ -48,3 +48,9 @@ create unique index idx_fenite_firstname on fenite_firstname (id);
 create table fenite_cooldown (
 	chatid char(50) primary key
 );
+
+create table fenite_active (
+	chatid char(50) not null,
+	start int not null,
+	end int not null
+);
