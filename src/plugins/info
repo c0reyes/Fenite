@@ -1,0 +1,38 @@
+sub {
+   use Fenite qw(query);
+
+   my ($self, $msg) = @_;
+
+   my $response = $self->getChatMember([
+       chat_id => $msg->{chat}{id},
+       user_id => $msg->{from}{id}
+   ]);
+
+   my @params = ($msg->{chat}{id});
+
+   my @result_cooldown = query("select chatid from fenite_cooldown where chatid = ?", @params);
+
+   my @result_active = query("select chatid, start, end from fenite_active where chatid = ?", @params);
+   my @active;
+   if(@result_active > 0) {
+       @active = split(/\|/, $result_active[0]);
+   }
+
+   my $m;
+
+   $m = "*You:* " . $msg->{from}{first_name} . "\n\n";
+
+   $m .=  "*Title:* " . $msg->{chat}{title} . "\n";
+   $m .= "*Type:* " . $msg->{chat}{type} . "\n";
+   $m .= "*ID:* " . $msg->{chat}{id} . "\n";
+   $m .= "*Your Status:* " . $response->{result}{status} . "\n\n";
+
+   $m .= "*Cooldown:* " . (@result_cooldown > 0 ? "off" : "on") . "\n";
+   $m .= "*Deactivate:* " . (@result_active > 0 ? "on, start: " . $active[1] . " end: " . $active[2] : "off") . "\n";
+
+   $self->sendMessage([
+        chat_id => $msg->{chat}{id},
+        text => $m,
+        parse_mode => 'Markdown'
+    ]);
+}

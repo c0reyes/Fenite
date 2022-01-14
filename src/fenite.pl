@@ -260,7 +260,7 @@ sub _process {
             foreach my $key (keys %resp) {
                 if($msg->{text} =~ /\b$key\b/i || ($key =~ /\W/ && $msg->{text} =~ /$key/i)) {
                     _send($msg, $resp{$key});
-                    $cooldown{$msg->{chat}{id}} = time() + (rand(3) * rand(60));
+                    $cooldown{$msg->{chat}{id}} = time() + (rand(3) * rand(60)) + $count;
                     last;
                 }
             }

@@ -19,4 +19,11 @@ sub {
         text => encode("utf8", $t),
         parse_mode => 'Markdown'
     ]);
+
+    $url = sprintf("https://wttr.in/Santo Domingo.png?%08X", rand(0xffffffff));
+
+    $self->sendPhoto([
+            chat_id => $msg->{chat}{id},
+            photo => $url
+    ]);
 }
